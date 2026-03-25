@@ -28,10 +28,13 @@ inline void updateTimeRegisters (State *state)
   // TODO: reset this register when the STOP mode ends
   if (state->enable_TIMA) {
     Byte old_TIMA = state->memory[TIMA_REGISTER];
-    state->memory[TIMA_REGISTER] = (state->cycles - state->cycles_last_TIMA)/state->cycles_div_TIMA;
+    ulong t_value_TIMA = (state->cycles - state->cycles_last_TIMA)/state->cycles_div_TIMA;
+    state->memory[TIMA_REGISTER] = t_value_TIMA + state->memory[TMA_REGISTER];
     // Detect TIMA overflow
     if (old_TIMA > state->memory[TIMA_REGISTER]) {
-      state->memory[TIMA_REGISTER] = state->memory[TMA_REGISTER];
+      // Account for overflowed cycles
+      state->cycles_last_TIMA = state->cycles - state->memory[TIMA_REGISTER]*state->cycles_div_TIMA;
+      state->memory[TIMA_REGISTER] += state->memory[TMA_REGISTER];
       SET_INTERRUPT(state, TIMER_INTERRUPT);
     }
   }

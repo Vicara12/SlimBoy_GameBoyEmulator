@@ -42,7 +42,7 @@ inline int instr_HALT (State *state)
 // STOP: halt CPU and LCD display until button pressed
 inline int instr_STOP (State *state)
 {
-  state->halted = true;
+  state->stopped = true;
   return 4;
 }
 
