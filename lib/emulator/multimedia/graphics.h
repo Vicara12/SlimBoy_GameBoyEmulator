@@ -97,15 +97,15 @@ inline void getTileLine (Byte tile_data_index, Byte tile_line, bool is_object, b
   Short tile_data_address;
   // Compute tile data address from Block 0 (0x8000 - 0x87FF) and Block 1 (0x8800 - 0x8FFF)
   if (is_object or LCDC_BG_W_TILE_DATA_AREA_LOW(state)) {
-    tile_data_address = 0x8000 + tile_data_index*16; // Each tile is 16 bytes
-    // Modify addr if object tile in 8x16 mode
     if (is_object and LCDC_OBJ_SIZE_BIG(state)) {
-      if (tile_line < 8) {
-        tile_data_address &= 0xFE; // Set lsb to 0
-      } else {
-        tile_data_address |= 0x01; // Set lsb to 1
-      }
+        if (tile_line >= 8) {
+            tile_data_index |= 0x01;  // bottom tile
+            tile_line -= 8;
+        } else {
+            tile_data_index &= 0xFE;  // top tile
+        }
     }
+    tile_data_address = 0x8000 + tile_data_index * 16;
   }
   // Compute tile data address from Block 1 (0x8800 - 0x8FFF) and Block 2 (0x9000 - 0x97FF)
   else {
@@ -185,8 +185,9 @@ inline std::array<Byte, SCREEN_PX_W> renderLineOBJ (Byte line_n, State *state)
       Byte n_px = obj_x + j - 8;
       // Check object is inside the viewport and there is no other higher priority object there
       if ((obj_x + j) >= 8 and (obj_x + j) < 168 and obj_x < px_written[n_px]) {
-        line_obj[n_px] = (x_flip ? obj_line[7-j] : obj_line[j]);
-        if (line_obj[n_px] != COLOR_TRANS) {
+        Byte px_color = (x_flip ? obj_line[7-j] : obj_line[j]);
+        if (px_color != COLOR_TRANS) {
+          line_obj[n_px] = px_color;
           px_written[n_px] = obj_x;
         }
       }

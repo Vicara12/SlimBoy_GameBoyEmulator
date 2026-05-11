@@ -38,7 +38,7 @@ inline void writeMem (Short addr, Byte data, State* state)
   else if (addr == DMA_REGISTER) {
     Short base_addr = Short(data) << 8;
     for (Short i = 0; i < 0x00A0; i++) {
-      state->memory[0xFE00 + i] = state->memory[base_addr];
+      state->memory[0xFE00 + i] = state->memory[base_addr + i];
     }
   }
 }
