@@ -15,3 +15,5 @@ void loadGame (State *state, GameRom *game_rom);
 
 // Load first 0x0100 bytes
 void replaceBootRom (State *state, GameRom *game_rom);
+
+void setPostBootState (State *state);

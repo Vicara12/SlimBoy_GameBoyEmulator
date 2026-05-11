@@ -23,10 +23,15 @@ int main (int argc, char **argv)
   if (debug) {
     std::cout << std::endl << "(Executing in debug mode)" << std::endl;
   }
+  EmulatorConfig config = {
+    .debug = debug,
+    .synch_execution = true,
+    .skip_boot_room = true    
+  };
   std::pair<Interface*,InterfaceData*> if_pair = getInterface();
   Interface *interface = if_pair.first;
   InterfaceData *if_data = if_pair.second;
-  std::thread emulation_thread(emulator, interface, &game_rom, debug);
+  std::thread emulation_thread(emulator, interface, &game_rom, config);
   emulation_thread.detach();
   interfaceLoop(if_data, emulation_thread);
 }

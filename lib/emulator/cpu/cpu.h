@@ -116,14 +116,15 @@ inline void checkAndCallInterrupt (State *state)
 
 inline void synchExecution (State *state, Interface *interface)
 {
-  ulong t_now = interface->realTimeMicros();
-  float emulator_time = state->config.target_speed*(state->cycles)/CLOCK_FREQ*1e6;
-  // Update every 50 ms
-  if (float(t_now - state->last_rate_call) > 50e3) {
-    interface->informEmuRate(float(t_now)/float(emulator_time));
+  ulong t_now = interface->realTimeMicros() - state->t_init_emulation;
+  float emulator_time = float(state->cycles)/CLOCK_FREQ*1e6;
+  float emulation_rate = emulator_time/t_now;
+  // Update every 500 ms
+  if (float(t_now - state->last_rate_call) > 500e3) {
+    interface->informEmuRate(emulation_rate);
     state->last_rate_call = t_now;
   }
-  float diff_ms = float(emulator_time - t_now)/1e3;
+  float diff_ms = float(emulator_time - state->config.target_speed*t_now)/1e3;
   if (diff_ms > 1) {
     interface->sleepMillis(diff_ms);
   }

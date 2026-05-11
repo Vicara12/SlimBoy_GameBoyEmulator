@@ -14,14 +14,14 @@
 ulong getDivFromTAC (Byte value_TAC);
 
 
-typedef struct {
+struct InternalConfig{
   float target_speed = 1.0;
   bool debug = false;
   bool end_emulation = false;
-} EmulatorConfig;
+};
 
 
-typedef struct {
+struct State{
   Reg A = 0;
   Reg B = 0;
   Reg C = 0;
@@ -44,6 +44,7 @@ typedef struct {
   bool vram_write_enabled = true;
   bool oam_write_enabled = true;
   ulong last_rate_call = 0; // Last time interface->informEmuRate was called
+  ulong t_init_emulation;
   ScreenFrame screen;
-  EmulatorConfig config;
-} State;
+  InternalConfig config;
+};
