@@ -31,6 +31,8 @@
 #define BGP_REGISTER  0xFF47 // BG and Window palette data
 #define OBP0_REGISTER 0xFF48 // Object palette 0
 #define OBP1_REGISTER 0xFF49 // Object palette 1
+#define WY_REGISTER   0xFF4A // Window position Y
+#define WX_REGISTER   0xFF4B // Window position X+7
 
 #define LCDC_LCD_ENABLED(state)             ((state->memory[LCDC_REGISTER] & 0x80) != 0)
 #define LCDC_WIN_TILE_MAP_HIGH(state)       ((state->memory[LCDC_REGISTER] & 0x40) != 0)
@@ -59,13 +61,14 @@ using PaletteColors = std::array<Byte,4>;
 using ScreenLineData = std::array<float, SCREEN_PX_W>;
 
 
-typedef struct {
+struct ScreenLine{
   ulong frame_last_updated = 0;
   ScreenLineData pixel;
-} ScreenLine;
+};
 
-typedef struct {
+struct ScreenFrame {
   Byte last_mode = 0;
   bool ly_lyc_flag_already_set = false;
+  Byte window_y = 0;
   std::array<ScreenLine, SCREEN_PX_H> line;
-} ScreenFrame;
+};
