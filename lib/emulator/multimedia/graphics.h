@@ -336,6 +336,8 @@ inline void renderLine (Byte line_n, State *state)
 inline void updateGraphics (State *state, Interface *interface)
 {
   if (not LCDC_LCD_ENABLED(state)) {
+    state->memory[STAT_REGISTER] &= 0xFC; // Clear bits 0 & 1, set mode 0
+    state->memory[LY_REGISTER] = 0;
     return;
   }
 
