@@ -18,6 +18,9 @@ std::pair<Interface*,InterfaceData*> getInterface ()
   interface->endEmulation = [if_data] () {return if_data->end_emulation;};
   interface->informEmuRate = [] (float er) {};
   // interface->informEmuRate = [] (float er) {std::cout << "Emu rate " << er << std::endl;};
+  interface->playAudio = [if_data] (std::tuple<AudioBuffer, AudioBuffer> &&new_audio) {
+    copyAudioBUffer(if_data, std::move(new_audio));
+  };
 
   return std::make_pair(interface, if_data);
 }

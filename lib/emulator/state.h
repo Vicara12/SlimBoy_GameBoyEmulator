@@ -8,7 +8,8 @@
 #include "types.h"
 #include "interface.h"
 #include "generaldefines.h"
-#include "multimedia/graphicstate.h"
+#include "graphics/graphicstate.h"
+#include "audio/audiostate.h"
 
 
 ulong getDivFromTAC (Byte value_TAC);
@@ -46,5 +47,6 @@ struct State{
   ulong last_rate_call = 0; // Last time interface->informEmuRate was called
   ulong t_init_emulation;
   ScreenFrame screen;
+  AudioState audio;
   InternalConfig config;
 };

@@ -6,6 +6,7 @@
 #include "cpu/cpu.h"
 #include "utils/initialization.h"
 #include "utils/debug.h"
+#include "audio/audio.h"
 
 
 void emulator (Interface *interface, GameRom *game_rom, EmulatorConfig cfg)
@@ -14,6 +15,7 @@ void emulator (Interface *interface, GameRom *game_rom, EmulatorConfig cfg)
   state->t_init_emulation = interface->realTimeMicros();
   state->config.debug = cfg.debug;
   state->config.target_speed = cfg.synch_execution ? 1 : std::numeric_limits<float>::max();
+  resetAudioBuffers(state->audio);
   ExecutionDebug edb;
   edb.breakpoint = 0x0100; // Set breakpoint at the end of boot rom
   if (cfg.skip_boot_room) {

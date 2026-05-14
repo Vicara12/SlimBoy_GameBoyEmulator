@@ -1,6 +1,6 @@
 #include "graphicstests.h"
 #include <unity.h>
-#include "multimedia/graphics.h"
+#include "graphics/graphics.h"
 #include "types.h"
 #include "state.h"
 

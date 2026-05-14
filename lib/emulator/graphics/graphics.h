@@ -7,7 +7,7 @@
 #include "types.h"
 #include "state.h"
 #include "interface.h"
-#include "multimedia/graphicstate.h"
+#include "graphics/graphicstate.h"
 
 
 

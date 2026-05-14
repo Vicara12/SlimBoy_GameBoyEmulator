@@ -1,6 +1,7 @@
 #include "cpu/cpu.h"
 #include "instructions/instruction.h"
-#include "multimedia/graphics.h"
+#include "graphics/graphics.h"
+#include "audio/audio.h"
 #include "utils/debuginstr.h"
 
 
@@ -32,6 +33,7 @@ void execute (State *state, Interface *interface, const ExecutionDebug &db)
       }
     } while (state->stopped);
     updateGraphics(state, interface);
+    updateAudio(state, interface);
     checkAndCallInterrupt(state);
     state->config.end_emulation = interface->endEmulation();
     synchExecution(state, interface);

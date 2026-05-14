@@ -3,7 +3,7 @@
 #include <functional>
 #include <string>
 #include "types.h"
-#include "multimedia/graphicstate.h"
+#include "graphics/graphicstate.h"
 
 
 // Button defines for readButtons function
@@ -15,6 +15,8 @@
 #define B_PRESSED       0x20
 #define SELECT_PRESSED  0x40
 #define START_PRESSED   0x80
+
+using AudioBuffer = std::vector<uint8_t>;
 
 
 // This structure contains the functions that get called whenever interaction with the underlying
@@ -47,4 +49,7 @@ typedef struct {
 
   // This function is called every 0.5 seconds and provides t_emulation/t_real
   std::function<void(float)> informEmuRate = nullptr;
+
+  // Called every 125 ms, receives as argument the left and right audio buffers, respectively
+  std::function<void(std::tuple<AudioBuffer, AudioBuffer>&&)> playAudio = nullptr;
 } Interface;
