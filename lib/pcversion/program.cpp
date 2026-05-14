@@ -132,7 +132,7 @@ protected:
         std::lock_guard<std::mutex> lock(audio_mutex);
         if (pending_samples.empty()) {
             // If the emulator isn't generating audio fast enough, feed silence
-            playing_chunk.assign(sr/32, 0); 
+            playing_chunk.assign(sr/8, 0);
         } else {
             playing_chunk = std::move(pending_samples);
             pending_samples.clear();

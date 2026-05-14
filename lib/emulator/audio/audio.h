@@ -35,10 +35,12 @@ inline void updateAudio (State *state, Interface *interface) {
     // Process audio
     float next_sample_l = std::sin(state->audio.freq_l * 2 * M_PI * float(state->audio.idx_l)/SAMPLE_RATE);
     float next_sample_r = std::sin(state->audio.freq_r * 2 * M_PI * float(state->audio.idx_r)/SAMPLE_RATE);
+    float envelope_l = std::sin(1 * M_PI * float(state->audio.idx_l)/SAMPLE_RATE);
+    float envelope_r = std::sin(1 * M_PI * (float(state->audio.idx_l)/SAMPLE_RATE + 0.5));
     state->audio.idx_l = (state->audio.idx_l + 1)%SAMPLE_RATE;
     state->audio.idx_r = (state->audio.idx_r + 1)%SAMPLE_RATE;
-    state->audio.audio_buffer_l.push_back(255 * (next_sample_l + 1) / 2);
-    state->audio.audio_buffer_r.push_back(255 * (next_sample_r + 1) / 2);
+    state->audio.audio_buffer_l.push_back(255 * (envelope_l * envelope_l) * (next_sample_l + 1) / 4);
+    state->audio.audio_buffer_r.push_back(255 * (envelope_r * envelope_r) * (next_sample_r + 1) / 4);
 
     if (state->audio.audio_buffer_l.size() >= SAMPLE_RATE/8) {
       interface->playAudio({state->audio.audio_buffer_l, state->audio.audio_buffer_r});
