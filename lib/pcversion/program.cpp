@@ -3,6 +3,7 @@
 #include <SFML/Audio.hpp>
 #include "program.h"
 #include "graphics/graphicstate.h"
+#include "audio/audiostate.h"
 
 
 
@@ -132,7 +133,7 @@ protected:
         std::lock_guard<std::mutex> lock(audio_mutex);
         if (pending_samples.empty()) {
             // If the emulator isn't generating audio fast enough, feed silence
-            playing_chunk.assign(sr/8, 0);
+            playing_chunk.assign(sr/8, - 32768);
         } else {
             playing_chunk = std::move(pending_samples);
             pending_samples.clear();
@@ -158,7 +159,7 @@ void interfaceLoop (InterfaceData *if_data, std::thread &emulation_thread)
 
   // Create a window
   sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Game Boy");
-  EmulatorAudioStream audio_stream(1024*8 /* sample rate */);
+  EmulatorAudioStream audio_stream(SAMPLE_RATE);
 
   audio_stream.play();
 

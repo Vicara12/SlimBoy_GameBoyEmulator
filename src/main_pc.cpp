@@ -26,7 +26,7 @@ int main (int argc, char **argv)
   EmulatorConfig config = {
     .debug = debug,
     .synch_execution = true,
-    .skip_boot_room = true    
+    .skip_boot_room = false    
   };
   std::pair<Interface*,InterfaceData*> if_pair = getInterface();
   Interface *interface = if_pair.first;

@@ -29,6 +29,13 @@ inline void writeMem (Short addr, Byte data, State* state)
   else if (addr >= 0xE000 and addr < 0xFE00) {
     state->memory[addr-0xE000+0xC000] = data;
   }
+  // Check audio channel registers written
+  else if (addr = NR14_REGISTER) {
+    state->audio.ch1.NR14_written = true;
+  }
+  else if (addr = NR12_REGISTER) {
+    state->audio.ch1.NR12_written = true;
+  }
   // If write to DIV (0xFF04) register, set its value to zero
   else if (addr == DIV_REGISTER) {
     state->cycles_last_DIV = state->cycles; // it will be set to zero next time its updated
