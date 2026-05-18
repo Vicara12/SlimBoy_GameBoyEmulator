@@ -7,6 +7,141 @@
 #include "types.h"
 
 
+// General audio registers
+#define NR52_AUDIO_ENABLED(state) ((state->memory[NR52_REGISTER] & 0x80) != 0)
+
+template<AudioChannel channel, bool set_on>
+inline void NR52_SET_CHX_ON_OFF (State *state) {
+  constexpr Byte mask = (1 << (static_cast<int>(channel) - 1));
+
+  if constexpr (set_on) {
+    state->memory[NR52_REGISTER] |= mask;
+  } else {
+    state->memory[NR52_REGISTER] &= ~mask;
+  }
+}
+
+template<AudioChannel channel>
+inline bool NR51_PAN_CHX_R (State *state) {
+  constexpr Byte mask = (0x01 << (static_cast<int>(channel) - 1));
+  return (state->memory[NR51_REGISTER] & mask) != 0;
+}
+
+template<AudioChannel channel>
+inline bool NR51_PAN_CHX_L (State *state) {
+  constexpr Byte mask = (0x10 << (static_cast<int>(channel) - 1));
+  return (state->memory[NR51_REGISTER] & mask) != 0;
+}
+
+#define NR50_R_VOL(state) (state->memory[NR50_REGISTER] & 0x07)
+#define NR50_L_VOL(state) ((state->memory[NR50_REGISTER] & 0x70) >> 4)
+
+
+// Channel specific functionalities
+#define NR10_CH1_SWEEP_PACE(state)      ((state->memory[NR10_REGISTER] & 0x70) >> 4)
+#define NR10_CH1_SWEEP_DIRECTION(state) ((state->memory[NR10_REGISTER] & 0x08) != 0)
+#define NR10_CH1_SWEEP_STEP(state)      (state->memory[NR10_REGISTER] & 0x07)
+
+template<AudioChannel channel>
+inline Byte CHX_DUTY (State *state) {
+  static_assert(
+    channel == AudioChannel::CH1 or channel == AudioChannel::CH2,
+    "Only channels 1 and 2 have a duty cycle"
+  );
+  constexpr Short reg = (channel == AudioChannel::CH1 ? NR11_REGISTER : NR21_REGISTER);
+  return (state->memory[reg] & 0xC0) >> 6;
+}
+
+template<AudioChannel channel>
+inline Byte CHX_INITIAL_LEN_TIMER (State *state) {
+  if constexpr      (channel == AudioChannel::CH1) return state->memory[NR11_REGISTER] & 0x3F;
+  else if constexpr (channel == AudioChannel::CH2) return state->memory[NR21_REGISTER] & 0x3F;
+  else if constexpr (channel == AudioChannel::CH3) return state->memory[NR31_REGISTER];
+  else                                             return state->memory[NR41_REGISTER] & 0x3F;
+}
+
+
+template <AudioChannel channel>
+inline Byte CHX_VOL (State *state) {
+  static_assert(channel != AudioChannel::CH3, "Channel 3 has no VOL value");
+  if constexpr      (channel == AudioChannel::CH1) return state->memory[NR12_REGISTER] >> 4;
+  else if constexpr (channel == AudioChannel::CH2) return state->memory[NR22_REGISTER] >> 4;
+  else                                             return state->memory[NR42_REGISTER] >> 4;
+}
+
+template <AudioChannel channel>
+inline bool CHX_ENV_DIR (State *state) {
+  static_assert(channel != AudioChannel::CH3, "Channel 3 has no ENV DIR value");
+  if constexpr      (channel == AudioChannel::CH1) return (state->memory[NR12_REGISTER] & 0x08) != 0;
+  else if constexpr (channel == AudioChannel::CH2) return (state->memory[NR22_REGISTER] & 0x08) != 0;
+  else                                             return (state->memory[NR42_REGISTER] & 0x08) != 0;
+}
+
+template <AudioChannel channel>
+inline Byte CHX_ENVELOPE_PACE (State *state) {
+  static_assert(channel != AudioChannel::CH3, "Channel 3 has no SWEEP PACE value");
+  if constexpr      (channel == AudioChannel::CH1) return state->memory[NR12_REGISTER] & 0x07;
+  else if constexpr (channel == AudioChannel::CH2) return state->memory[NR22_REGISTER] & 0x07;
+  else                                             return state->memory[NR42_REGISTER] & 0x07;
+}
+
+template <AudioChannel channel>
+inline bool CHX_ZERO_VOL_ENV (State *state) {
+  static_assert(channel != AudioChannel::CH3, "Channel 3 has no ENV DIR value");
+  if constexpr      (channel == AudioChannel::CH1) return (state->memory[NR12_REGISTER] & 0xF8) == 0;
+  else if constexpr (channel == AudioChannel::CH2) return (state->memory[NR22_REGISTER] & 0xF8) == 0;
+  else                                             return (state->memory[NR42_REGISTER] & 0xF8) == 0;
+}
+
+
+template <AudioChannel channel>
+inline bool CHX_TRIGGERED (State *state) {
+  if constexpr      (channel == AudioChannel::CH1) return (state->memory[NR14_REGISTER] & 0x80) != 0;
+  else if constexpr (channel == AudioChannel::CH2) return (state->memory[NR24_REGISTER] & 0x80) != 0;
+  else if constexpr (channel == AudioChannel::CH3) return (state->memory[NR34_REGISTER] & 0x80) != 0;
+  else                                             return (state->memory[NR44_REGISTER] & 0x80) != 0;
+}
+
+template <AudioChannel channel>
+inline bool CHX_LEN_ENABLED (State *state) {
+  if constexpr      (channel == AudioChannel::CH1) return (state->memory[NR14_REGISTER] & 0x40) != 0;
+  else if constexpr (channel == AudioChannel::CH2) return (state->memory[NR24_REGISTER] & 0x40) != 0;
+  else if constexpr (channel == AudioChannel::CH3) return (state->memory[NR34_REGISTER] & 0x40) != 0;
+  else                                             return (state->memory[NR44_REGISTER] & 0x40) != 0;
+}
+
+template <AudioChannel channel>
+inline Short GET_CHX_PERIOD (State *state) {
+  static_assert(channel != AudioChannel::CH4, "Channel 4 has no period");
+  if constexpr (channel == AudioChannel::CH1)
+    return (Short(state->memory[NR14_REGISTER] & 0x07) << 8) | Short(state->memory[NR13_REGISTER]);
+  else if constexpr (channel == AudioChannel::CH2)
+    return (Short(state->memory[NR24_REGISTER] & 0x07) << 8) | Short(state->memory[NR23_REGISTER]);
+  else
+    return (Short(state->memory[NR34_REGISTER] & 0x07) << 8) | Short(state->memory[NR33_REGISTER]);
+}
+
+template<AudioChannel channel>
+inline void SET_CHX_PERIOD (State *state, Short new_value) {
+    static_assert(channel != AudioChannel::CH4, "Channel 4 has no period");
+  if constexpr (channel == AudioChannel::CH1) {
+    state->memory[NR13_REGISTER] = new_value;
+    state->memory[NR14_REGISTER] &= 0xF8;
+    state->memory[NR14_REGISTER] |= (new_value >> 8) & 0x07;
+  }
+  else if constexpr (channel == AudioChannel::CH2) {
+    state->memory[NR23_REGISTER] = new_value;
+    state->memory[NR24_REGISTER] &= 0xF8;
+    state->memory[NR24_REGISTER] |= (new_value >> 8) & 0x07;
+  }
+  else {
+    state->memory[NR33_REGISTER] = new_value;
+    state->memory[NR34_REGISTER] &= 0xF8;
+    state->memory[NR34_REGISTER] |= (new_value >> 8) & 0x07;
+  }
+}
+
+
 inline void resetAudioBuffers (AudioState &audio_state) {
   audio_state.audio_buffer_l.clear();
   audio_state.audio_buffer_r.clear();
@@ -15,127 +150,127 @@ inline void resetAudioBuffers (AudioState &audio_state) {
 }
 
 
-inline void SET_CH1_PERIOD (State *state, Short new_value) {
-  state->memory[NR13_REGISTER] = new_value;
-  state->memory[NR14_REGISTER] &= 0xF8;
-  state->memory[NR14_REGISTER] |= (new_value >> 8) & 0x07;
+template<AudioChannel channel>
+inline void channelState (State *state, PulseChannelData &ch_data) {
+  if (ch_data.NRX4_written or ch_data.NRX2_written) {
+    if (ch_data.NRX4_written) {
+      if (CHX_LEN_ENABLED<channel>(state))
+        ch_data.auto_off_clk = state->cycles + (64 - CHX_INITIAL_LEN_TIMER<channel>(state)) * (CLOCK_FREQ/256);
+      else
+        ch_data.auto_off_clk = std::numeric_limits<ulong>::max();
+    }
+    
+    if (CHX_ZERO_VOL_ENV<channel>(state)) {
+      ch_data.on = false;
+      NR52_SET_CHX_ON_OFF<channel, false>(state);
+    }
+    else if (CHX_TRIGGERED<channel>(state)) {
+      state->memory[NR14_REGISTER] &= 0x7F; // Clear trigger bit
+      ch_data.on = true;
+      // Period overflow will be detected, sequence_idx increased to 0 and that will trigger CH1 config
+      ch_data.period_overflow_clk = state->cycles;
+      ch_data.envelope_pace = CHX_ENVELOPE_PACE<channel>(state);
+      ch_data.envelope_next_clk = state->cycles + ch_data.envelope_pace*(CLOCK_FREQ/64);
+      ch_data.sequence_idx = 7;
+      ch_data.volume = CHX_VOL<channel>(state) * 17; // Scale [0,15] -> [0,255]
+      if constexpr (channel == AudioChannel::CH1)
+        ch_data.last_pace = NR10_CH1_SWEEP_PACE(state);
+      NR52_SET_CHX_ON_OFF<channel, true>(state);
+    }
+    ch_data.NRX4_written = false;
+    ch_data.NRX2_written = false;
+  }
 }
 
 
-inline void processCH1 (
+template<AudioChannel channel>
+inline void checkNewEnvelopeVolume (State *state, PulseChannelData &ch_data) {
+  if (ch_data.envelope_pace != 0 and state->cycles >= ch_data.envelope_next_clk) {
+    ch_data.envelope_next_clk += ch_data.envelope_pace*(CLOCK_FREQ/64);
+    if ( CHX_ENV_DIR<channel>(state)) {
+      if (ch_data.volume != 255)
+        ch_data.volume += 17;
+    } else {
+      if (ch_data.volume != 0)
+        ch_data.volume -= 17;
+    }
+  }
+}
+
+
+inline void checkNewPace (State *state, PulseChannelData &ch_data) {
+  Short new_pace = NR10_CH1_SWEEP_PACE(state);
+  if (state->cycles >= ch_data.pace_change_clk) {
+    ch_data.pace_change_clk += new_pace * (CLOCK_FREQ/128);
+    ch_data.last_pace = new_pace;
+    Short period = GET_CHX_PERIOD<AudioChannel::CH1>(state);
+    Short change = period >> NR10_CH1_SWEEP_STEP(state);
+    if (NR10_CH1_SWEEP_DIRECTION(state)) {
+      if (period >= change)
+        SET_CHX_PERIOD<AudioChannel::CH1>(state, period-change);
+      else
+        SET_CHX_PERIOD<AudioChannel::CH1>(state, 0);
+    } else {
+      Short new_period = period + change;
+      if (new_period >= 0x0800) {
+        ch_data.on = false;
+      } else {
+        SET_CHX_PERIOD<AudioChannel::CH1>(state, new_period);
+      }
+    }
+  }
+}
+
+
+template<AudioChannel channel>
+inline void processPulseChannel (
   State *state,
+  PulseChannelData &ch_data,
   int &sample_l,
   int &sample_r
 ) {
-  auto &ch1 = state->audio.ch1;
-  if (ch1.NR14_written or ch1.NR12_written) {
-    if (ch1.NR14_written) {
-      if (NR14_CH1_LEN_ENABLED(state))
-        ch1.auto_off_clk = state->cycles + (64 - NR11_CH1_INITIAL_LEN_TIMER(state)) * (CLOCK_FREQ/256);
-      else
-        ch1.auto_off_clk = std::numeric_limits<ulong>::max();
-    }
-    
-    if (state->memory[NR12_REGISTER] & 0xF8 == 0) {
-      state->audio.ch1.on = false;
-      NR52_SET_CH1_OFF(state);
-    }
-    else if (NR14_CH1_TRIGGERED(state) and (state->memory[NR12_REGISTER] & 0xF8) != 0) {
-      state->memory[NR14_REGISTER] &= 0x7F; // Clear trigger bit
-      ch1.on = true;
-      // Below period overflow will be detected, idx increased to 0 and that will trigger CH1 config
-      ch1.period_overflow_clk = state->cycles;
-      ch1.envelope_sweep_pace = NR12_CH1_SWEEP_PACE(state);
-      ch1.envelope_next_clk = state->cycles + ch1.envelope_sweep_pace*(CLOCK_FREQ/64);
-      ch1.sequence_idx = 7;
-      ch1.volume = NR12_CH1_VOL(state) * 17; // Scale [0,15] -> [0,255]
-      ch1.last_pace = NR10_CH1_SWEEP_PACE(state);
-      NR52_SET_CH1_ON(state);
-    }
-    ch1.NR14_written = false;
-    ch1.NR12_written = false;
+  channelState<channel>(state, ch_data);
+
+  if (state->cycles >= ch_data.auto_off_clk) {
+    ch_data.auto_off_clk = std::numeric_limits<ulong>::max();
+    ch_data.on = false;
   }
 
-  if (state->cycles >= ch1.auto_off_clk) {
-    ch1.auto_off_clk = std::numeric_limits<ulong>::max();
-    ch1.on = false;
-  }
-
-  if (not ch1.on) {
+  if (not ch_data.on) {
     return;
   }
 
-  Byte new_pace = NR10_CH1_SWEEP_PACE(state);
-  if (new_pace == 0) {
-    ch1.pace_change_clk = std::numeric_limits<ulong>::max();
-  }
-  else if (ch1.last_pace == 0) {
-    ch1.pace_change_clk = state->cycles;
+  if constexpr (channel == AudioChannel::CH1) {
+    if (NR10_CH1_SWEEP_PACE(state) == 0) {
+      ch_data.pace_change_clk = std::numeric_limits<ulong>::max();
+    }
+    else if (ch_data.last_pace == 0) {
+      ch_data.pace_change_clk = state->cycles;
+    }
   }
 
-  if (state->cycles >= ch1.period_overflow_clk) {
-    ulong reminder = state->cycles - ch1.period_overflow_clk;
-    ch1.period_overflow_clk = state->cycles + 4 * (0x0800 - GET_CH1_PERIOD(state)) - reminder;
-    ch1.sequence_idx = (ch1.sequence_idx + 1)%8;
+  if (state->cycles >= ch_data.period_overflow_clk) {
+    ulong reminder = state->cycles - ch_data.period_overflow_clk;
+    ch_data.period_overflow_clk = state->cycles + 4 * (0x0800 - GET_CHX_PERIOD<channel>(state)) - reminder;
+    ch_data.sequence_idx = (ch_data.sequence_idx + 1)%8;
     // Configuration is only changed at the begining of an audio sequencer
-    if (ch1.sequence_idx == 0) {
-      ch1.duty_idx = NR11_CH1_DUTY(state);
+    if (ch_data.sequence_idx == 0) {
+      ch_data.duty_idx = CHX_DUTY<channel>(state);
     }
-    // Check for new volume value (envelope)
-    if (ch1.envelope_sweep_pace != 0 and state->cycles >= ch1.envelope_next_clk) {
-      ch1.envelope_next_clk += ch1.envelope_sweep_pace*(CLOCK_FREQ/64);
-      if (NR12_CH1_ENV_DIR(state)) {
-        if (ch1.volume != 255)
-          ch1.volume += 17;
-      } else {
-        if (ch1.volume != 0)
-          ch1.volume -= 17;
-      }
-    }
+    checkNewEnvelopeVolume<channel>(state, ch_data);
     // Check for new pace
-    if (state->cycles >= ch1.pace_change_clk) {
-      ch1.pace_change_clk += new_pace * (CLOCK_FREQ/128);
-      ch1.last_pace = new_pace;
-      Short period = GET_CH1_PERIOD(state);
-      Short change = period >> NR10_CH1_SWEEP_STEP(state);
-      if (NR10_CH1_SWEEP_DIRECTION(state)) {
-        if (period >= change)
-          SET_CH1_PERIOD(state, period-change);
-        else
-          SET_CH1_PERIOD(state, 0);
-      } else {
-        Short new_period = period + change;
-        if (new_period >= 0x0800) {
-          ch1.on = false;
-        } else {
-          SET_CH1_PERIOD(state, new_period);
-        }
-      }
+    if constexpr (channel == AudioChannel::CH1) {
+      checkNewPace(state, ch_data);
     }
-    ch1.signal_value = AUDIO_SEQUENCER[ch1.duty_idx][ch1.sequence_idx] * ch1.volume;
+    ch_data.signal_value = AUDIO_SEQUENCER[ch_data.duty_idx][ch_data.sequence_idx] * ch_data.volume;
   }
 
-  if (NR51_PAN_CH1_L(state)) {
-    sample_l += ch1.signal_value;
+  if (NR51_PAN_CHX_L<channel>(state)) {
+    sample_l += ch_data.signal_value;
   }
-  if (NR51_PAN_CH1_R(state)) {
-    sample_r += ch1.signal_value;
+  if (NR51_PAN_CHX_R<channel>(state)) {
+    sample_r += ch_data.signal_value;
   }
-}
-
-
-#include <math.h>
-inline void testAudio (
-  State *state,
-  int &sample_l,
-  int &sample_r
-) {
-  float val1 = std::sin(2 * M_PI * 440 * (state->cycles/PUSH_AUDIO_EACH)/SAMPLE_RATE);
-  float val2 = std::sin(2 * M_PI * 540 * (state->cycles/PUSH_AUDIO_EACH)/SAMPLE_RATE + M_1_PI / 2);
-  float evelope = std::abs(std::sin(2 * M_PI * 0.5 * (state->cycles/PUSH_AUDIO_EACH)/SAMPLE_RATE));
-
-  sample_l = 255 * evelope * (val1 + 1)/2;
-  sample_r = 255 * std::sqrt(1 - evelope * evelope) * (val2 + 1)/2;
 }
 
 
@@ -155,7 +290,7 @@ inline void updateAudio (State *state, Interface *interface) {
     state->audio.cycles_next_push += PUSH_AUDIO_EACH;
 
     if (not NR52_AUDIO_ENABLED(state)) {
-      if (state->audio.registers_cleared) {
+      if (not state->audio.registers_cleared) {
         state->audio.registers_cleared = true;
         clearAudioRegs(state);
       }
@@ -167,9 +302,8 @@ inline void updateAudio (State *state, Interface *interface) {
     int sample_l = 0;
     int sample_r = 0;
 
-    processCH1(state, sample_l, sample_r);
-
-    // testAudio(state, sample_l, sample_r);
+    processPulseChannel<AudioChannel::CH1>(state, state->audio.ch1, sample_l, sample_r);
+    processPulseChannel<AudioChannel::CH2>(state, state->audio.ch2, sample_l, sample_r);
 
     // Control channel volume and add them to buffer
     // We divide by 8 because volume goes from 0+1 to 7+1 and by 4 because there are 4 channels

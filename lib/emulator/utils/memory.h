@@ -30,11 +30,17 @@ inline void writeMem (Short addr, Byte data, State* state)
     state->memory[addr-0xE000+0xC000] = data;
   }
   // Check audio channel registers written
-  else if (addr = NR14_REGISTER) {
-    state->audio.ch1.NR14_written = true;
+  else if (addr == NR14_REGISTER) {
+    state->audio.ch1.NRX4_written = true;
   }
-  else if (addr = NR12_REGISTER) {
-    state->audio.ch1.NR12_written = true;
+  else if (addr == NR12_REGISTER) {
+    state->audio.ch1.NRX2_written = true;
+  }
+  else if (addr == NR24_REGISTER) {
+    state->audio.ch2.NRX4_written = true;
+  }
+  else if (addr == NR22_REGISTER) {
+    state->audio.ch2.NRX2_written = true;
   }
   // If write to DIV (0xFF04) register, set its value to zero
   else if (addr == DIV_REGISTER) {

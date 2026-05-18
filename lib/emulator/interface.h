@@ -50,6 +50,6 @@ typedef struct {
   // This function is called every 0.5 seconds and provides t_emulation/t_real
   std::function<void(float)> informEmuRate = nullptr;
 
-  // Called every 125 ms, receives as argument the left and right audio buffers, respectively
+  // Called every 32 times a second, receives as argument the left and right audio buffers, respectively
   std::function<void(std::tuple<AudioBuffer, AudioBuffer>&&)> playAudio = nullptr;
 } Interface;

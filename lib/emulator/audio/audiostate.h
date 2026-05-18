@@ -6,9 +6,16 @@
 #include "generaldefines.h"
 
 
-#define AUDIO_BUFFER_SIZE 4096
-#define SAMPLE_RATE       (AUDIO_BUFFER_SIZE*8) // 32768 samples/sec
+#define AUDIO_BUFFER_SIZE 1024
+#define SAMPLE_RATE       (AUDIO_BUFFER_SIZE*32) // 32768 samples/sec
 #define PUSH_AUDIO_EACH   (CLOCK_FREQ / SAMPLE_RATE)
+
+enum class AudioChannel : int {
+  CH1 = 1,
+  CH2 = 2,
+  CH3 = 3,
+  CH4 = 4
+};
 
 
 #define NR10_REGISTER 0xFF10 // Channel 1 sweep
@@ -38,44 +45,6 @@
 #define NR51_REGISTER 0xFF25 // Sound panning
 #define NR52_REGISTER 0xFF26 // Audio master control
 
-#define NR52_AUDIO_ENABLED(state) ((state->memory[NR52_REGISTER] & 0x80) != 0)
-#define NR52_SET_CH4_ON(state)    (state->memory[NR52_REGISTER] |=  0x08)
-#define NR52_SET_CH4_OFF(state)   (state->memory[NR52_REGISTER] &= ~0x08)
-#define NR52_SET_CH3_ON(state)    (state->memory[NR52_REGISTER] |=  0x04)
-#define NR52_SET_CH3_OFF(state)   (state->memory[NR52_REGISTER] &= ~0x04)
-#define NR52_SET_CH2_ON(state)    (state->memory[NR52_REGISTER] |=  0x02)
-#define NR52_SET_CH2_OFF(state)   (state->memory[NR52_REGISTER] &= ~0x02)
-#define NR52_SET_CH1_ON(state)    (state->memory[NR52_REGISTER] |=  0x01)
-#define NR52_SET_CH1_OFF(state)   (state->memory[NR52_REGISTER] &= ~0x01)
-
-#define NR51_PAN_CH1_R(state) ((state->memory[NR51_REGISTER] & 0x01) != 0)
-#define NR51_PAN_CH2_R(state) ((state->memory[NR51_REGISTER] & 0x02) != 0)
-#define NR51_PAN_CH3_R(state) ((state->memory[NR51_REGISTER] & 0x04) != 0)
-#define NR51_PAN_CH4_R(state) ((state->memory[NR51_REGISTER] & 0x08) != 0)
-#define NR51_PAN_CH1_L(state) ((state->memory[NR51_REGISTER] & 0x10) != 0)
-#define NR51_PAN_CH2_L(state) ((state->memory[NR51_REGISTER] & 0x20) != 0)
-#define NR51_PAN_CH3_L(state) ((state->memory[NR51_REGISTER] & 0x40) != 0)
-#define NR51_PAN_CH4_L(state) ((state->memory[NR51_REGISTER] & 0x80) != 0)
-
-#define NR50_R_VOL(state) (state->memory[NR50_REGISTER] & 0x07)
-#define NR50_L_VOL(state) ((state->memory[NR50_REGISTER] & 0x70) >> 4)
-
-// Channel 1 functionalities
-#define NR10_CH1_SWEEP_PACE(state)      ((state->memory[NR10_REGISTER] & 0x70) >> 4)
-#define NR10_CH1_SWEEP_DIRECTION(state) ((state->memory[NR10_REGISTER] & 0x08) != 0)
-#define NR10_CH1_SWEEP_STEP(state)      (state->memory[NR10_REGISTER] & 0x07)
-
-#define NR11_CH1_DUTY(state)              ((state->memory[NR11_REGISTER] & 0xC0) >> 6)
-#define NR11_CH1_INITIAL_LEN_TIMER(state) (state->memory[NR11_REGISTER] &0x3F)
-
-#define NR12_CH1_VOL(state)        (state->memory[NR12_REGISTER] >> 4)
-#define NR12_CH1_ENV_DIR(state)    ((state->memory[NR12_REGISTER] & 0x08) != 0)
-#define NR12_CH1_SWEEP_PACE(state) (state->memory[NR12_REGISTER] & 0x07)
-
-#define NR14_CH1_TRIGGERED(state)   ((state->memory[NR14_REGISTER] & 0x80) != 0)
-#define NR14_CH1_LEN_ENABLED(state) ((state->memory[NR14_REGISTER] & 0x40) != 0)
-#define GET_CH1_PERIOD(state) ((Short(state->memory[NR14_REGISTER] & 0x07) << 8) | Short(state->memory[NR13_REGISTER]))
-
 
 constexpr std::array<std::array<Byte,8>,4> AUDIO_SEQUENCER {{
   {0,0,0,0,0,0,0,1}, // 00: 12.5% duty
@@ -85,7 +54,7 @@ constexpr std::array<std::array<Byte,8>,4> AUDIO_SEQUENCER {{
 }};
 
 
-struct CH1Data {
+struct PulseChannelData {
   ulong period_overflow_clk = 0;
   ulong envelope_next_clk = 0;
   ulong auto_off_clk = std::numeric_limits<ulong>::max();
@@ -94,10 +63,10 @@ struct CH1Data {
   Byte duty_idx = 0;
   Byte sequence_idx = 0;
   Byte volume = 0;
-  Byte envelope_sweep_pace = 0;
+  Byte envelope_pace = 0;
   Byte last_pace = 0;
-  bool NR14_written = true; // Control register
-  bool NR12_written = true; // Volume and envelope control
+  bool NRX4_written = true; // Control register
+  bool NRX2_written = true; // Volume and envelope control
   bool on = false;
 };
 
@@ -106,6 +75,7 @@ struct AudioState {
   ulong cycles_next_push = 0;
   std::vector<Byte> audio_buffer_l;
   std::vector<Byte> audio_buffer_r;
-  CH1Data ch1;
+  PulseChannelData ch1;
+  PulseChannelData ch2;
   bool registers_cleared = false;
 };
