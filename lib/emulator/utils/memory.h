@@ -11,6 +11,10 @@
 
 inline void writeMem (Short addr, Byte data, State* state)
 {
+  // Prevent writing to ROM
+  if (addr < 0x8000) {
+    return;
+  }
   // If write in locked video memory region do not write
   if (LCDC_LCD_ENABLED(state) and (
       (not state->vram_write_enabled and addr >= 0x8000 and addr < 0xA000) or
