@@ -123,7 +123,7 @@ inline Short GET_CHX_PERIOD (State *state) {
 
 template<AudioChannel channel>
 inline void SET_CHX_PERIOD (State *state, Short new_value) {
-    static_assert(channel != AudioChannel::CH4, "Channel 4 has no period");
+  static_assert(channel != AudioChannel::CH4, "Channel 4 has no period");
   if constexpr (channel == AudioChannel::CH1) {
     state->memory[NR13_REGISTER] = new_value;
     state->memory[NR14_REGISTER] &= 0xF8;
@@ -140,6 +140,9 @@ inline void SET_CHX_PERIOD (State *state, Short new_value) {
     state->memory[NR34_REGISTER] |= (new_value >> 8) & 0x07;
   }
 }
+
+#define NR30_CH3_DAC_ENABLED(state) ((state->memory[NR30_REGISTER] & 0x80) != 0)
+#define NR32_CH3_VOL(state)         ((state->memory[NR32_REGISTER] & 0x60) >> 5)
 
 
 inline void resetAudioBuffers (AudioState &audio_state) {
@@ -275,6 +278,62 @@ inline void processPulseChannel (
 }
 
 
+inline Byte waveChannelVolumeShift (State *state) {
+  switch (NR32_CH3_VOL(state)) {
+    case 0b00: return 8; //   0% volume
+    case 0b01: return 0; // 100% volume
+    case 0b10: return 1; //  50% volume
+    case 0b11: return 2; //  25% volume
+  }
+  return 0; // Impossible
+}
+
+
+inline void processWaveChannel (State *state, int &sample_l, int &sample_r) {
+  WaveChannelData &ch3 = state->audio.ch3;
+  if (not NR30_CH3_DAC_ENABLED(state)) {
+    ch3.on = false;
+  }
+  else if (ch3.NR34_written) {
+    if (CHX_TRIGGERED<AudioChannel::CH3>(state)) {
+      state->memory[NR34_REGISTER] &= 0x7F; // Clear trigger bit
+      ch3.on = true;
+      ch3.period_overflow_clk = state->cycles;
+      ch3.ram_idx = 0;
+    }
+    if (CHX_LEN_ENABLED<AudioChannel::CH3>(state))
+      ch3.auto_off_clk = state->cycles + (256 - CHX_INITIAL_LEN_TIMER<AudioChannel::CH3>(state)) * (CLOCK_FREQ/256);
+    else
+      ch3.auto_off_clk = std::numeric_limits<ulong>::max();
+  }
+  ch3.NR34_written = false;
+
+  if (state->cycles >= ch3.auto_off_clk) {
+    ch3.auto_off_clk = std::numeric_limits<ulong>::max();
+    ch3.on = false;
+  }
+
+  if (not ch3.on) {
+    return;
+  }
+
+  if (state->cycles >= ch3.period_overflow_clk) {
+    ch3.period_overflow_clk += 2 * (0x0800 - GET_CHX_PERIOD<AudioChannel::CH3>(state));
+    ch3.ram_idx = (ch3.ram_idx+1)%32;
+    Byte mem_val = state->memory[WAVE_PAT_REGISTER + ch3.ram_idx/2];
+    Byte wave_val = ((ch3.ram_idx % 2) == 0 ? (mem_val >> 4) : (mem_val & 0x0F));
+    ch3.signal_value = (((255/15) * wave_val) >> waveChannelVolumeShift(state));
+  }
+
+  if (NR51_PAN_CHX_L<AudioChannel::CH3>(state)) {
+    sample_l += ch3.signal_value;
+  }
+  if (NR51_PAN_CHX_R<AudioChannel::CH3>(state)) {
+    sample_r += ch3.signal_value;
+  }
+}
+
+
 inline void clearAudioRegs (State *state)
 {
   for (Short addr = 0xFF10; addr < 0xFF15; addr++)
@@ -305,6 +364,7 @@ inline void updateAudio (State *state, Interface *interface) {
 
     processPulseChannel<AudioChannel::CH1>(state, state->audio.ch1, sample_l, sample_r);
     processPulseChannel<AudioChannel::CH2>(state, state->audio.ch2, sample_l, sample_r);
+    processWaveChannel(state, sample_l, sample_r);
 
     // Control channel volume and add them to buffer
     // We divide by 8 because volume goes from 0+1 to 7+1 and by 4 because there are 4 channels

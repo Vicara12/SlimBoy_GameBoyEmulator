@@ -57,7 +57,7 @@ protected:
       }
       read_idx.store(w, std::memory_order_release);
     } else {
-      playing_chunk.assign(AUDIO_BUFFER_SIZE / 4, -32768);
+      playing_chunk.assign(AUDIO_BUFFER_SIZE / 2, -32768);
     }
 
     data.samples = playing_chunk.data();
