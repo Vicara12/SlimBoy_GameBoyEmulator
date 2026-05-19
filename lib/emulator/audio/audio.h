@@ -143,10 +143,11 @@ inline void SET_CHX_PERIOD (State *state, Short new_value) {
 
 
 inline void resetAudioBuffers (AudioState &audio_state) {
-  audio_state.audio_buffer_l.clear();
-  audio_state.audio_buffer_r.clear();
-  audio_state.audio_buffer_l.reserve(AUDIO_BUFFER_SIZE);
-  audio_state.audio_buffer_r.reserve(AUDIO_BUFFER_SIZE);
+  audio_state.aud_pkg = AudioPacket();
+  audio_state.aud_pkg.buffer_l.clear();
+  audio_state.aud_pkg.buffer_r.clear();
+  audio_state.aud_pkg.buffer_l.reserve(AUDIO_BUFFER_SIZE);
+  audio_state.aud_pkg.buffer_r.reserve(AUDIO_BUFFER_SIZE);
 }
 
 
@@ -307,13 +308,13 @@ inline void updateAudio (State *state, Interface *interface) {
 
     // Control channel volume and add them to buffer
     // We divide by 8 because volume goes from 0+1 to 7+1 and by 4 because there are 4 channels
-    state->audio.audio_buffer_l.push_back(int(NR50_L_VOL(state) + 1)*sample_l/(8*4));
-    state->audio.audio_buffer_r.push_back(int(NR50_R_VOL(state) + 1)*sample_r/(8*4));
+    state->audio.aud_pkg.buffer_l.push_back(int(NR50_L_VOL(state) + 1)*sample_l/(8*4));
+    state->audio.aud_pkg.buffer_r.push_back(int(NR50_R_VOL(state) + 1)*sample_r/(8*4));
 
 
     // If buffer has enough data, send it to be played through the speakers
-    if (state->audio.audio_buffer_l.size() >= SAMPLE_RATE/8) {
-      interface->playAudio({state->audio.audio_buffer_l, state->audio.audio_buffer_r});
+    if (state->audio.aud_pkg.buffer_l.size() >= AUDIO_BUFFER_SIZE) {
+      interface->playAudio(std::move(state->audio.aud_pkg));
       resetAudioBuffers(state->audio);
     }
   }

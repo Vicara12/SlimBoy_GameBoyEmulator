@@ -6,8 +6,9 @@
 #include "generaldefines.h"
 
 
-#define AUDIO_BUFFER_SIZE 1024
-#define SAMPLE_RATE       (AUDIO_BUFFER_SIZE*32) // 32768 samples/sec
+#define SAMPLE_RATE       32768
+#define AUDIO_UPDATE_FREQ 32
+#define AUDIO_BUFFER_SIZE (SAMPLE_RATE / AUDIO_UPDATE_FREQ)
 #define PUSH_AUDIO_EACH   (CLOCK_FREQ / SAMPLE_RATE)
 
 enum class AudioChannel : int {
@@ -54,6 +55,12 @@ constexpr std::array<std::array<Byte,8>,4> AUDIO_SEQUENCER {{
 }};
 
 
+struct AudioPacket {
+  std::vector<Byte> buffer_l;
+  std::vector<Byte> buffer_r;
+};
+
+
 struct PulseChannelData {
   ulong period_overflow_clk = 0;
   ulong envelope_next_clk = 0;
@@ -73,8 +80,7 @@ struct PulseChannelData {
 
 struct AudioState {
   ulong cycles_next_push = 0;
-  std::vector<Byte> audio_buffer_l;
-  std::vector<Byte> audio_buffer_r;
+  AudioPacket aud_pkg;
   PulseChannelData ch1;
   PulseChannelData ch2;
   bool registers_cleared = false;

@@ -1,9 +1,8 @@
 #include <map>
 #include <fstream>
-#include <SFML/Audio.hpp>
 #include "program.h"
 #include "graphics/graphicstate.h"
-#include "audio/audiostate.h"
+#include "interfaceadapter.h"
 
 
 
@@ -90,66 +89,6 @@ bool handleInputs (sf::RenderWindow &window, InterfaceData *if_data)
 }
 
 
-
-class EmulatorAudioStream : public sf::SoundStream {
-private:
-    std::vector<sf::Int16> pending_samples;
-    std::vector<sf::Int16> playing_chunk;
-    mutable std::mutex audio_mutex;
-    size_t sr;
-
-public:
-    EmulatorAudioStream(unsigned int sample_rate) : sr(sample_rate) {
-        initialize(2, sr);
-    }
-
-    void pushSamples(const std::tuple<std::vector<uint8_t>, std::vector<uint8_t>> &new_samples) {
-        std::lock_guard<std::mutex> lock(audio_mutex);
-
-        const auto &samples_l = std::get<0>(new_samples);
-        const auto &samples_r = std::get<1>(new_samples);
-
-        if (samples_l.size() != samples_r.size()) {
-          std::cerr << "ERROR: L & R sound channels buffer size mismatch" << std::endl;
-        }
-
-        pending_samples.reserve(pending_samples.size() + 2 * samples_l.size());
-
-        for (size_t i = 0; i < samples_l.size(); i++) {
-          // Convert from uint8_t to int16_t in such a way that 0 -> int16 min and 255 -> int16 max
-          pending_samples.push_back(static_cast<int16_t>((samples_l[i] * 257) - 32768));
-          pending_samples.push_back(static_cast<int16_t>((samples_r[i] * 257) - 32768));
-        }
-
-        // Prevent the buffer from growing infinitely if the emulator runs faster than real time
-        if (pending_samples.size() > sr) { // 0.5 second of stereo audio max
-            pending_samples.erase(pending_samples.begin(), pending_samples.end() - (sr));
-        }
-    }
-
-protected:
-
-    virtual bool onGetData(Chunk& data) override {
-        std::lock_guard<std::mutex> lock(audio_mutex);
-        if (pending_samples.empty()) {
-            // If the emulator isn't generating audio fast enough, feed silence
-            playing_chunk.assign(sr/128, - 32768);
-        } else {
-            playing_chunk = std::move(pending_samples);
-            pending_samples.clear();
-        }
-        data.samples = playing_chunk.data();
-        data.sampleCount = playing_chunk.size();
-
-        return true;
-    }
-
-    // Required override for sf::SoundStream
-    virtual void onSeek(sf::Time timeOffset) override {}
-};
-
-
-
 void interfaceLoop (InterfaceData *if_data, std::thread &emulation_thread)
 {
   int px_size = 4;
@@ -159,17 +98,13 @@ void interfaceLoop (InterfaceData *if_data, std::thread &emulation_thread)
 
   // Create a window
   sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Game Boy");
-  EmulatorAudioStream audio_stream(SAMPLE_RATE);
 
-  audio_stream.play();
+  if_data->audio_stream.play();
 
   // Main loop to render the window
   while (window.isOpen()) {
     bool exit = handleInputs(window, if_data);
-    if (if_data->new_audio.has_value()) {
-      audio_stream.pushSamples(*(if_data->new_audio));
-      if_data->new_audio = std::nullopt;
-    }
+    // Audio is handled automatically by the audio stream in if_data
     drawScreen(px_size, window, if_data);
     if (exit) {
       endEmulation(if_data);
@@ -177,7 +112,7 @@ void interfaceLoop (InterfaceData *if_data, std::thread &emulation_thread)
         emulation_thread.join();
       }
       window.close();
-      audio_stream.stop();
+      if_data->audio_stream.stop();
     }
   }
 }

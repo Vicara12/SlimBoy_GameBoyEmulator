@@ -4,6 +4,7 @@
 #include <string>
 #include "types.h"
 #include "graphics/graphicstate.h"
+#include "audio/audiostate.h"
 
 
 // Button defines for readButtons function
@@ -51,5 +52,5 @@ typedef struct {
   std::function<void(float)> informEmuRate = nullptr;
 
   // Called every 32 times a second, receives as argument the left and right audio buffers, respectively
-  std::function<void(std::tuple<AudioBuffer, AudioBuffer>&&)> playAudio = nullptr;
+  std::function<void(AudioPacket&&)> playAudio = nullptr;
 } Interface;

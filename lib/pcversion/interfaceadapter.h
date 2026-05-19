@@ -11,13 +11,14 @@
 #include <optional>
 #include "interface.h"
 #include "graphics/graphicstate.h"
+#include "audiostream.h"
 
 
 using ScreenPixels = std::vector<std::vector<float>>;
 
 
 // DO NOT set or read values from this struct, use the provided functions instead
-typedef struct {
+struct InterfaceData{
   std::mutex screen_mutex;
   std::mutex audio_mutex;
   ScreenPixels screen = ScreenPixels(SCREEN_PX_H, std::vector<float>(SCREEN_PX_W));
@@ -25,8 +26,8 @@ typedef struct {
   std::chrono::steady_clock::time_point ini_t;
   bool ini_t_initialized = false;
   bool end_emulation = false;
-  std::optional<std::tuple<AudioBuffer, AudioBuffer>> new_audio;
-} InterfaceData;
+  EmulatorAudioStream<8*AUDIO_BUFFER_SIZE> audio_stream = EmulatorAudioStream<8*AUDIO_BUFFER_SIZE>(SAMPLE_RATE);
+};
 
 
 // Functions used by main program
@@ -68,15 +69,4 @@ inline void updateScreen (InterfaceData *if_data, ScreenFrame *sf)
     }
   }
   if_data->screen_mutex.unlock();
-}
-
-
-inline void copyAudioBUffer (
-  InterfaceData *if_data,
-  std::tuple<AudioBuffer, AudioBuffer> &&gb_audio
-)
-{
-  if_data->audio_mutex.lock();
-  if_data->new_audio = std::move(gb_audio);
-  if_data->audio_mutex.unlock();
 }
