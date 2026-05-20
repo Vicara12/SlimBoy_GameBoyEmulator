@@ -45,6 +45,12 @@ inline void writeMem (Short addr, Byte data, State* state)
   else if (addr == NR34_REGISTER) {
     state->audio.ch3.NR34_written = true;
   }
+  else if (addr == NR43_REGISTER) {
+    state->audio.ch4.NR43_written = true;
+  }
+  else if (addr == NR44_REGISTER) {
+    state->audio.ch4.NR44_written = true;
+  }
   // If write to DIV (0xFF04) register, set its value to zero
   else if (addr == DIV_REGISTER) {
     state->cycles_last_DIV = state->cycles; // it will be set to zero next time its updated

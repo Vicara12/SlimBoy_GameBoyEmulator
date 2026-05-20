@@ -88,11 +88,27 @@ struct WaveChannelData {
 };
 
 
+struct NoiseChannelData {
+  ulong noise_shift_cycles = 0;
+  ulong period_overflow_clk = 0;
+  ulong auto_off_clk = std::numeric_limits<ulong>::max();
+  ulong envelope_next_clk = 0;
+  Short lfsr = 0;
+  Byte signal_value = 0;
+  Byte volume = 0;
+  Byte envelope_pace = 0;
+  bool NR43_written = true;
+  bool NR44_written = true;
+  bool on = false;
+};
+
+
 struct AudioState {
   ulong cycles_next_push = 0;
   AudioPacket aud_pkg;
   PulseChannelData ch1;
   PulseChannelData ch2;
-  WaveChannelData ch3;
+  WaveChannelData  ch3;
+  NoiseChannelData ch4;
   bool registers_cleared = false;
 };

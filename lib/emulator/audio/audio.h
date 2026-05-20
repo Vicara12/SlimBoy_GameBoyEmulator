@@ -144,6 +144,8 @@ inline void SET_CHX_PERIOD (State *state, Short new_value) {
 #define NR30_CH3_DAC_ENABLED(state) ((state->memory[NR30_REGISTER] & 0x80) != 0)
 #define NR32_CH3_VOL(state)         ((state->memory[NR32_REGISTER] & 0x60) >> 5)
 
+#define NR43_CH4_SHORT_MODE(state)  ((state->memory[NR43_REGISTER] & 0x08) != 0)
+
 
 inline void resetAudioBuffers (AudioState &audio_state) {
   audio_state.aud_pkg = AudioPacket();
@@ -155,7 +157,7 @@ inline void resetAudioBuffers (AudioState &audio_state) {
 
 
 template<AudioChannel channel>
-inline void channelState (State *state, PulseChannelData &ch_data) {
+inline void pulseChannelState (State *state, PulseChannelData &ch_data) {
   if (ch_data.NRX4_written or ch_data.NRX2_written) {
     if (ch_data.NRX4_written) {
       if (CHX_LEN_ENABLED<channel>(state))
@@ -188,10 +190,10 @@ inline void channelState (State *state, PulseChannelData &ch_data) {
 
 
 template<AudioChannel channel>
-inline void checkNewEnvelopeVolume (State *state, PulseChannelData &ch_data) {
+inline void checkNewEnvelopeVolume (State *state, auto &ch_data) {
   if (ch_data.envelope_pace != 0 and state->cycles >= ch_data.envelope_next_clk) {
     ch_data.envelope_next_clk += ch_data.envelope_pace*(CLOCK_FREQ/64);
-    if ( CHX_ENV_DIR<channel>(state)) {
+    if (CHX_ENV_DIR<channel>(state)) {
       if (ch_data.volume != 255)
         ch_data.volume += 17;
     } else {
@@ -233,7 +235,7 @@ inline void processPulseChannel (
   int &sample_l,
   int &sample_r
 ) {
-  channelState<channel>(state, ch_data);
+  pulseChannelState<channel>(state, ch_data);
 
   if (state->cycles >= ch_data.auto_off_clk) {
     ch_data.auto_off_clk = std::numeric_limits<ulong>::max();
@@ -334,6 +336,93 @@ inline void processWaveChannel (State *state, int &sample_l, int &sample_r) {
 }
 
 
+inline ulong noiseShiftCycles (State *state) {
+  Byte nr43_val = state->memory[NR43_REGISTER];
+  ulong shift = (nr43_val >> 4);
+  if (shift > 13) {
+    return std::numeric_limits<ulong>::max();
+  }
+  ulong divider = (nr43_val & 0x07);
+  ulong main_freq = 262144;
+  if (divider == 0) {
+    divider = 1;
+    main_freq *= 2;
+  }
+  return (CLOCK_FREQ / main_freq) * (divider << shift);
+}
+
+
+inline Byte cycleLFSR (State *state) {
+  Short lfsr = state->audio.ch4.lfsr;
+  Short new_bit = 1 - (((lfsr & 0x02) != 0) ^ (lfsr & 0x01)); // XNOR of bits 0 and 1
+  lfsr &= ~(1 << 15);
+  lfsr |=  (new_bit << 15);
+  if (NR43_CH4_SHORT_MODE(state)) {
+    lfsr &= ~(1 << 7);
+    lfsr |=  (new_bit << 7);
+  }
+  state->audio.ch4.lfsr = (lfsr >> 1);
+  return lfsr & 1;
+}
+
+
+inline void noiseChannelState(State *state, NoiseChannelData &ch4) {
+  if (CHX_ZERO_VOL_ENV<AudioChannel::CH4>(state)) {
+    ch4.on = false;
+  }
+  else if (ch4.NR44_written) {
+    if (CHX_TRIGGERED<AudioChannel::CH4>(state)) {
+      state->memory[NR44_REGISTER] &= 0x7F; // Clear trigger bit
+      ch4.on = true;
+      ch4.volume = CHX_VOL<AudioChannel::CH4>(state) * 17; // Scale [0,15] -> [0,255]
+      ch4.envelope_pace = CHX_ENVELOPE_PACE<AudioChannel::CH4>(state);
+      ch4.envelope_next_clk = state->cycles + ch4.envelope_pace*(CLOCK_FREQ/64);
+      ch4.lfsr = 0;
+      ch4.NR43_written = true; // This will trigger LFSR frequency calculation below
+    }
+    if (CHX_LEN_ENABLED<AudioChannel::CH4>(state))
+      ch4.auto_off_clk = state->cycles + (64 - CHX_INITIAL_LEN_TIMER<AudioChannel::CH4>(state)) * (CLOCK_FREQ/256);
+    else
+      ch4.auto_off_clk = std::numeric_limits<ulong>::max();
+  }
+  if (ch4.NR43_written) {
+    ch4.NR43_written = false;
+    ch4.noise_shift_cycles = noiseShiftCycles(state);
+    ch4.period_overflow_clk = state->cycles;
+  }
+  ch4.NR44_written = false;
+
+  if (state->cycles >= ch4.auto_off_clk) {
+    ch4.auto_off_clk = std::numeric_limits<ulong>::max();
+    ch4.on = false;
+  }
+}
+
+
+inline void processNoiseChannel(State *state, int &sample_l, int &sample_r) {
+  NoiseChannelData &ch4 = state->audio.ch4;
+  noiseChannelState(state, ch4);
+
+  if (not ch4.on) {
+    return;
+  }
+
+  if (state->cycles >= ch4.period_overflow_clk) {
+    ulong reminder = state->cycles - ch4.period_overflow_clk;
+    ch4.period_overflow_clk = state->cycles + ch4.noise_shift_cycles - reminder;
+    checkNewEnvelopeVolume<AudioChannel::CH4>(state, ch4);
+    ch4.signal_value = cycleLFSR(state) * ch4.volume;
+  }
+
+  if (NR51_PAN_CHX_L<AudioChannel::CH4>(state)) {
+    sample_l += ch4.signal_value;
+  }
+  if (NR51_PAN_CHX_R<AudioChannel::CH4>(state)) {
+    sample_r += ch4.signal_value;
+  }
+}
+
+
 inline void clearAudioRegs (State *state)
 {
   for (Short addr = 0xFF10; addr < 0xFF15; addr++)
@@ -365,6 +454,7 @@ inline void updateAudio (State *state, Interface *interface) {
     processPulseChannel<AudioChannel::CH1>(state, state->audio.ch1, sample_l, sample_r);
     processPulseChannel<AudioChannel::CH2>(state, state->audio.ch2, sample_l, sample_r);
     processWaveChannel(state, sample_l, sample_r);
+    processNoiseChannel(state, sample_l, sample_r);
 
     // Control channel volume and add them to buffer
     // We divide by 8 because volume goes from 0+1 to 7+1 and by 4 because there are 4 channels
