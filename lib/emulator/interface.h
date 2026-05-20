@@ -23,7 +23,7 @@ using AudioBuffer = std::vector<uint8_t>;
 // This structure contains the functions that get called whenever interaction with the underlying
 // hardware is needed (for example for button input or timing). They should be as fast as possible,
 // as they are executed sequentially with the emulator
-typedef struct {
+struct Interface {
   // This function returns a Byte in which a 1 in bit 0 corresponds to R button pressed, in bit 1 to
   // L, in bit 2 to U, in bit 3 to D, in bit 4 to A, int bit 5 to B, in bit 6 to Sel and in bit 7 to
   // start
@@ -53,4 +53,4 @@ typedef struct {
 
   // Called every 32 times a second, receives as argument the left and right audio buffers, respectively
   std::function<void(AudioPacket&&)> playAudio = nullptr;
-} Interface;
+};

@@ -189,8 +189,8 @@ inline void pulseChannelState (State *state, PulseChannelData &ch_data) {
 }
 
 
-template<AudioChannel channel>
-inline void checkNewEnvelopeVolume (State *state, auto &ch_data) {
+template<AudioChannel channel, typename ChDataT>
+inline void checkNewEnvelopeVolume (State *state, ChDataT &ch_data) {
   if (ch_data.envelope_pace != 0 and state->cycles >= ch_data.envelope_next_clk) {
     ch_data.envelope_next_clk += ch_data.envelope_pace*(CLOCK_FREQ/64);
     if (CHX_ENV_DIR<channel>(state)) {
@@ -263,7 +263,7 @@ inline void processPulseChannel (
     if (ch_data.sequence_idx == 0) {
       ch_data.duty_idx = CHX_DUTY<channel>(state);
     }
-    checkNewEnvelopeVolume<channel>(state, ch_data);
+    checkNewEnvelopeVolume<channel, PulseChannelData>(state, ch_data);
     // Check for new pace
     if constexpr (channel == AudioChannel::CH1) {
       checkNewPace(state, ch_data);
@@ -410,7 +410,7 @@ inline void processNoiseChannel(State *state, int &sample_l, int &sample_r) {
   if (state->cycles >= ch4.period_overflow_clk) {
     ulong reminder = state->cycles - ch4.period_overflow_clk;
     ch4.period_overflow_clk = state->cycles + ch4.noise_shift_cycles - reminder;
-    checkNewEnvelopeVolume<AudioChannel::CH4>(state, ch4);
+    checkNewEnvelopeVolume<AudioChannel::CH4, NoiseChannelData>(state, ch4);
     ch4.signal_value = cycleLFSR(state) * ch4.volume;
   }
 

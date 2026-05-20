@@ -5,7 +5,7 @@
 
 
 
-#define MEM_SIZE 0x10000
+#define GB_MEM_SIZE 0x10000
 #define CLOCK_FREQ 4194304
 
 

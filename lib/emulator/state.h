@@ -33,7 +33,7 @@ struct State{
   Reg L = 0;
   DReg SP = 0xFFFE;
   DReg PC = 0x0000;
-  Byte memory[MEM_SIZE] = {0};
+  Byte memory[GB_MEM_SIZE] = {0};
   bool halted = false;
   bool stopped = false;
   bool ime = false; // Interrupt Master Enable cpu flag

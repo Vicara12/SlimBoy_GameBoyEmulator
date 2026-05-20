@@ -1,89 +1,64 @@
 #include <Arduino.h>
-#include "instructions/instruction.h"
-#include "state.h"
-#include "interface.h"
-#include "cpu/cpu.h"
-#include "utils/debug.h"
+#include <vector>
+#include "SPIFFS.h"
+#include "interfaceadapter.h"
+#include "emulator.h"
 
+float er;
+Interface interface;
+GameRom game_rom;
+auto emu_cfg = EmulatorConfig{
+  .debug = false,
+  .synch_execution = false,
+  .skip_boot_room = false
+};
+const std::string game_path_ = "/Tetris.gb";
+
+
+void launchEmulator () {
+  emulator(&interface, &game_rom, emu_cfg);
+}
+
+
+void readGameRom(const std::string &game_path) {
+  if (not SPIFFS.begin(true)) {
+    Serial.println("Some error occurred while mounting SPIFFS");
+    while (true) delay(1000);
+  }
+  
+  File file = SPIFFS.open(game_path.c_str(), FILE_READ);
+  if (not file || file.isDirectory())
+    throw std::runtime_error("Could not open file: " + game_path);
+
+  if (file.size() != game_rom.size()) {
+    Serial.println("ROM and buffer size mismatch");
+    while (true) delay(1000);
+  }
+
+  size_t counter = 0;
+  while (file.available())
+    game_rom[counter++] = file.read();
+
+  file.close();
+
+  if (counter != game_rom.size()) {
+    Serial.println("Could not read full content of ROM");
+    while (true) delay(1000);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
-}
-
-void benchmark (Byte opcode, Byte data0, Byte data1, State *state)
-{
-  Serial.println("\nBegan testing!");
-  int total = 0;
-  auto t_ini = micros();
-  for (int i = 0; i < int(1e6); i++) {
-    total += executeInstruction(opcode, data0, data1, state);
-    // total += instr_LDX_A_mem_HL(state, true, true);
-  }
-  auto t_fi = micros();
-  Serial.println("Took " +  String((t_fi-t_ini)/1e6) + " secs " + String(total) + ".");
-}
-
-void benchmarkAll (State *state)
-{
-  Serial.println("\nBegan testing!");
-  for (int opcode = 0; opcode <= 0xFF; opcode++) {
-    auto t_ini = micros();
-    for (int i = 0; i < int(1e4); i++) {
-      executeInstruction(opcode, 0x00, 0x00, state);
-    }
-    auto t_fi = micros();
-    float ratio = (t_fi-t_ini)/1e4;
-    String base_msg = " * " + String(opcode) + ": " +  String(ratio) + " s";
-    if (ratio > 0.7) {
-      Serial.println("WARNING: " + base_msg);
-    } else {
-      Serial.println(base_msg);
-    }
-    
-  }
-    for (int opcode = 0; opcode <= 0xFF; opcode++) {
-    auto t_ini = micros();
-    for (int i = 0; i < int(1e4); i++) {
-      executeInstruction(0xCB, opcode, 0x00, state);
-    }
-    auto t_fi = micros();
-    float ratio = (t_fi-t_ini)/1e4;
-    String base_msg = " * (CB) " + String(opcode) + ": " +  String(ratio) + " s";
-    if (ratio > 0.7) {
-      Serial.println("WARNING: " + base_msg);
-    } else {
-      Serial.println(base_msg);
-    }
-    
-  }
-}
-
-
-void testExecBlock (State *state, Interface *interface)
-{
-  // initializeState(state);
-  Serial.println("Beginning execution...");
-  auto t_ini = micros();
-  execute(state, interface);
-  auto t_fi = micros();
-  float cycles = state->cycles;
-  float t_theo = cycles*1e6/CLOCK_FREQ;
-  Serial.println("Finished! Took: " + String(t_fi - t_ini) + " us / " + String(t_theo) + " us max.");
-  Serial.println("State:");
-  showRegisters(state, interface);
-  showMemoryRange(state, 0xFF05, 0xFFFF, interface);
+  Serial.println("\n\nBeginning setup...");
+  interface = getESP32Interface(er);
+  Serial.println("Interface loaded");
+  readGameRom(game_path_);
+  Serial.println("Done reading game ROM");
+  
+  emulator(&interface, &game_rom, emu_cfg);
 }
 
 void loop() {
-  Serial.println("\nBegan testing!");
-  State *state = new State;
-  Interface *interface = new Interface;
-  interface->readButtons = [](){return 0;};
-  interface->print = [](std::string data) {Serial.print(data.c_str());};
-  // benchmark(0xF8, 0x01, 0x00, state);
-  // execute(state);
-  // benchmarkAll(state);
-  testExecBlock(state, interface);
-  delete state;
-  delay(1e4);
+  Serial.println("WTF");
+  delay(1000);
 }
