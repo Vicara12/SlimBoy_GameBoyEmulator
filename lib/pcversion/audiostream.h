@@ -50,14 +50,16 @@ protected:
     size_t w = write_idx.load(std::memory_order_acquire);
     size_t r = read_idx.load(std::memory_order_relaxed);
     if (w != r) {
-      playing_chunk.resize(w - r);
+      // Return a maximum of one sound buffer so as to not drain the margin in the audio queue
+      size_t to_read = std::min(w - r, size_t(AUDIO_BUFFER_SIZE));
+      playing_chunk.resize(to_read);
 
       for (size_t i = 0; i < playing_chunk.size(); i++) {
         playing_chunk[i] = ring_buffer[(r + i) & MASK];
       }
-      read_idx.store(w, std::memory_order_release);
+      read_idx.store(r + to_read, std::memory_order_release);
     } else {
-      playing_chunk.assign(AUDIO_BUFFER_SIZE / 2, -32768);
+      playing_chunk.assign(AUDIO_BUFFER_SIZE, -32768);
     }
 
     data.samples = playing_chunk.data();
