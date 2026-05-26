@@ -113,16 +113,18 @@ inline void checkAndCallInterrupt (State *state)
 template<class InterfaceT>
 inline void synchExecution (State *state, InterfaceT &interface)
 {
-  ulong t_now = interface.realTimeMicros() - state->t_init_emulation;
-  float emulator_time = float(state->cycles)/CLOCK_FREQ*1e6;
-  float emulation_rate = emulator_time/t_now;
+  ulong t_now = interface.realTimeMicros();
+  ulong delta_t = t_now - state->t_last_synch;
+  float delta_emu_t = float(state->cycles - state->cycles_last_synch)/CLOCK_FREQ*1e6;
+  float emulation_rate = delta_emu_t/delta_t;
   // Update every 500 ms
-  if (float(t_now - state->last_rate_call) > 500e3) {
+  if (float(t_now - state->t_last_synch) > 500e3) {
     interface.informEmuRate(emulation_rate);
-    state->last_rate_call = t_now;
+    state->t_last_synch = t_now;
+    state->cycles_last_synch = state->cycles;
   }
-  float diff_ms = float(emulator_time - state->config.target_speed*t_now)/1e3;
-  if (diff_ms > 1) {
+  float diff_ms = float(delta_emu_t/state->config.target_speed - delta_t)/1e3;
+  if (diff_ms > 5) {
     interface.sleepMillis(diff_ms);
   }
 }

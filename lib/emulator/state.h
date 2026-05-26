@@ -59,8 +59,8 @@ struct State {
   bool enable_TIMA = false;
   bool vram_write_enabled = true;
   bool oam_write_enabled = true;
-  ulong last_rate_call = 0; // Last time interface->informEmuRate was called
-  ulong t_init_emulation;
+  ulong t_last_synch = 0;
+  ulong cycles_last_synch = 0;
   ScreenFrame screen;
   AudioState audio;
   InternalConfig config;

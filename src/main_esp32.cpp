@@ -5,7 +5,7 @@
 #include "emulator.h"
 
 float er;
-Interface interface;
+ESP32Interface *interface;
 GameRom game_rom;
 auto emu_cfg = EmulatorConfig{
   .debug = false,
@@ -15,9 +15,9 @@ auto emu_cfg = EmulatorConfig{
 const std::string game_path_ = "/Tetris.gb";
 
 
-void launchEmulator () {
-  emulator(&interface, &game_rom, emu_cfg);
-}
+// void launchEmulator () {
+//   emulator(&interface, &game_rom, emu_cfg);
+// }
 
 
 void readGameRom(const std::string &game_path) {
@@ -50,12 +50,12 @@ void readGameRom(const std::string &game_path) {
 void setup() {
   Serial.begin(115200);
   Serial.println("\n\nBeginning setup...");
-  interface = getESP32Interface(er);
+  interface = new ESP32Interface;
   Serial.println("Interface loaded");
   readGameRom(game_path_);
   Serial.println("Done reading game ROM");
   
-  emulator(&interface, &game_rom, emu_cfg);
+  emulator(*interface, &game_rom, emu_cfg);
 }
 
 void loop() {

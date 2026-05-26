@@ -23,7 +23,6 @@ struct EmulatorConfig {
 template<class InterfaceT>
 void emulator (InterfaceT &interface, GameRom *game_rom, EmulatorConfig cfg) {
   State *state = new State;
-  state->t_init_emulation = interface.realTimeMicros();
   state->config.debug = cfg.debug;
   state->config.target_speed = cfg.synch_execution ? 1 : std::numeric_limits<float>::max();
   state->screen.line = interface.updateScreen();

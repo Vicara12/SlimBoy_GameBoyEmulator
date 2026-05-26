@@ -44,19 +44,19 @@ public:
 
   // EMULATOR SIDE FUNCTIONS
 
-  // REIMPLEMENT: This function takes a string and prints it (either on console, serial, etc)
+  // IMPLEMENT: This function takes a string and prints it (either on console, serial, etc)
   inline void print (const std::string_view &s) {impl().print(s);};
 
-  // REIMPLEMENT: This function should return a line introduced by the user
+  // IMPLEMENT: This function should return a line introduced by the user
   inline std::string userLineInput () {return impl().userLineInput();};
 
-  // REIMPLEMENT: This function should pause the program for a given amount of milliseconds
+  // IMPLEMENT: This function should pause the program for a given amount of milliseconds
   inline void sleepMillis (uint t) {impl().sleepMillis(t);};
 
-  // REIMPLEMENT: This function should return the current real time in microseconds
+  // IMPLEMENT: This function should return the current real time in microseconds
   inline ulong realTimeMicros () {return impl().realTimeMicros();};
 
-  // REIMPLEMENT: Called every 32 times a second, receives as argument the left and right audio buffers, respectively
+  // IMPLEMENT: Called every 32 times a second, receives as argument the left and right audio buffers, respectively
   inline void playAudio (AudioPacket&& ap) {impl().playAudio(std::move(ap));};
 
   inline ScreenPixels* updateScreen () {
