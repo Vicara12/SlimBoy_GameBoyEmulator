@@ -12,9 +12,11 @@
 
 bool readRom (const std::string &path, GameRom &game_rom);
 
-void interfaceLoop (InterfaceData *if_data, std::thread &emulation_thread);
+void interfaceLoop (PCInterface &if_data, std::thread &emulation_thread, sf::RenderWindow &window);
 
 // Returns wether the user wants to terminate the program
-bool handleInputs (sf::RenderWindow &window, InterfaceData *if_data);
+bool handleInputs (sf::RenderWindow &window, PCInterface &interface);
 
-void drawScreen (int px_size, sf::RenderWindow &window, InterfaceData *if_data);
+void drawScreen (sf::RenderWindow &window, PCInterface &interface);
+
+sf::RenderWindow createWindow (int px_size);

@@ -434,7 +434,8 @@ inline void clearAudioRegs (State *state)
 }
 
 
-inline void updateAudio (State *state, Interface *interface) {
+template<class InterfaceT>
+inline void updateAudio (State *state, InterfaceT &interface) {
   while (state->cycles >= state->audio.cycles_next_push) {
     state->audio.cycles_next_push += PUSH_AUDIO_EACH;
 
@@ -464,7 +465,7 @@ inline void updateAudio (State *state, Interface *interface) {
 
     // If buffer has enough data, send it to be played through the speakers
     if (state->audio.aud_pkg.buffer_l.size() >= AUDIO_BUFFER_SIZE) {
-      interface->playAudio(std::move(state->audio.aud_pkg));
+      interface.playAudio(std::move(state->audio.aud_pkg));
       resetAudioBuffers(state->audio);
     }
   }

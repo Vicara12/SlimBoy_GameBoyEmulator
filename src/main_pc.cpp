@@ -6,9 +6,10 @@
 #include "tetris.h"
 
 
+#define PX_WIDTH 4
 
-int main (int argc, char **argv)
-{
+
+int main (int argc, char **argv) {
   GameRom game_rom;
   if (argc > 1) {
     // Read game rom, if there was an error quit emulator
@@ -28,10 +29,9 @@ int main (int argc, char **argv)
     .synch_execution = true,
     .skip_boot_room = false
   };
-  std::pair<Interface*,InterfaceData*> if_pair = getInterface();
-  Interface *interface = if_pair.first;
-  InterfaceData *if_data = if_pair.second;
-  std::thread emulation_thread(emulator, interface, &game_rom, config);
+  sf::RenderWindow window = createWindow(PX_WIDTH);
+  PCInterface interface;
+  std::thread emulation_thread(emulator<PCInterface>, std::ref(interface), &game_rom, config);
   emulation_thread.detach();
-  interfaceLoop(if_data, emulation_thread);
+  interfaceLoop(interface, emulation_thread, window);
 }

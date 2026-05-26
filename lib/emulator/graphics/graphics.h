@@ -324,16 +324,17 @@ inline void renderLine (Byte line_n, State *state)
     // If priority then BG and Window colors != 0 draw over OBJ
     if (obj_priority[i]) {
       Byte pixel_color = (obj_line[i] == COLOR_TRANS or bgw_line_idcs[i] != 0 ? bgw_line[i] : obj_line[i]);
-      state->screen.line[line_n].pixel[i] = colorNumToFloat(pixel_color);
+      (*state->screen.line)[line_n].pixel[i] = colorNumToFloat(pixel_color);
     } else {
       Byte pixel_color = (obj_line[i] == COLOR_TRANS ? bgw_line[i] : obj_line[i]);
-      state->screen.line[line_n].pixel[i] = colorNumToFloat(pixel_color);
+      (*state->screen.line)[line_n].pixel[i] = colorNumToFloat(pixel_color);
     }
   }
 }
 
 
-inline void updateGraphics (State *state, Interface *interface)
+template<class InterfaceT>
+inline void updateGraphics (State *state, InterfaceT &interface)
 {
   if (not LCDC_LCD_ENABLED(state)) {
     state->memory[STAT_REGISTER] &= 0xFC; // Clear bits 0 & 1, set mode 0
@@ -352,12 +353,15 @@ inline void updateGraphics (State *state, Interface *interface)
 
   // Check if a new line needs to be rendered
   ulong current_frame = state->cycles/DOTS_PER_FRAME;
-  if (mode == MODE0_HBLANK and current_frame != state->screen.line[line_n].frame_last_updated) {
+  if (mode == MODE0_HBLANK and current_frame != (*state->screen.line)[line_n].frame_last_updated) {
     renderLine(line_n, state);
     // If rendered last line of frame and frame has been rendered from line 0, call screen update
-    if (line_n == SCREEN_PX_H-1 and current_frame == state->screen.line[0].frame_last_updated) {
-      interface->updateScreen(&(state->screen));
+    if (line_n == SCREEN_PX_H-1 and current_frame == (*state->screen.line)[0].frame_last_updated) {
+      state->screen.line = interface.updateScreen(state->screen.line);
+      for (auto &l : *state->screen.line) {
+        l.frame_last_updated = 0;
+      }
     }
-    state->screen.line[line_n].frame_last_updated = current_frame;
+    (*state->screen.line)[line_n].frame_last_updated = current_frame;
   }
 }

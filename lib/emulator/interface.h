@@ -2,55 +2,106 @@
 
 #include <functional>
 #include <string>
+#include <utility>
+#include <mutex>
 #include "types.h"
 #include "graphics/graphicstate.h"
 #include "audio/audiostate.h"
 
 
 // Button defines for readButtons function
-#define RIGHT_PRESSED   0x01
-#define LEFT_PRESSED    0x02
-#define UP_PRESSED      0x04
-#define DOWN_PRESSED    0x08
-#define A_PRESSED       0x10
-#define B_PRESSED       0x20
-#define SELECT_PRESSED  0x40
-#define START_PRESSED   0x80
+enum class Button : Byte {
+  Right  = 0x01,
+  Left   = 0x02,
+  Up     = 0x04,
+  Down   = 0x08,
+  A      = 0x10,
+  B      = 0x20,
+  Select = 0x40,
+  Start  = 0x80
+};
 
-using AudioBuffer = std::vector<uint8_t>;
 
 
-// This structure contains the functions that get called whenever interaction with the underlying
-// hardware is needed (for example for button input or timing). They should be as fast as possible,
-// as they are executed sequentially with the emulator
-struct Interface {
-  // This function returns a Byte in which a 1 in bit 0 corresponds to R button pressed, in bit 1 to
-  // L, in bit 2 to U, in bit 3 to D, in bit 4 to A, int bit 5 to B, in bit 6 to Sel and in bit 7 to
-  // start
-  std::function<Byte()> readButtons = nullptr;
+// This template class contains the function declarations that get called whenever interaction with
+// the underlying hardware is needed (for example for button input or timing).
+// Each target platform needs to implement a class specifying the behavior following the
+// Curiously Recurring Template Pattern (CRTP) for some of the emulator side functions.
+// They should be as fast as possible (prefer inline) as they are executed sequentially with the
+// emulator
+template<class Derived>
+class HardwareInterface {
+  std::mutex screen_mutex;
+  std::array<ScreenPixels*, 3> screen_frames;
+  float emu_rate = 1.f;
+  Byte buttons = 0x00;
+  bool end_emulation = false;
 
-  // This function takes a string and prints it (either on console, serial, etc)
-  std::function<void(std::string)> print = nullptr;
+  inline Derived& impl() {return *static_cast<Derived*>(this);};
 
-  // This function should return a line introduced by the user
-  std::function<std::string()> userLineInput = nullptr;
+public:
 
-  // This function should pause the program for a given amount of milliseconds
-  std::function<void(int)> sleepMillis = nullptr;
+  // EMULATOR SIDE FUNCTIONS
 
-  // This function should return the current real time in microseconds
-  std::function<ulong()> realTimeMicros = nullptr;
+  // REIMPLEMENT: This function takes a string and prints it (either on console, serial, etc)
+  inline void print (const std::string_view &s) {impl().print(s);};
 
-  // This function receives a ScreenFrame, which contains the value of each pixel in an intensity
-  // scale from 0 to 3, where 0 is white and 3 black, and prints it to screen
-  std::function<void(ScreenFrame*)> updateScreen = nullptr;
+  // REIMPLEMENT: This function should return a line introduced by the user
+  inline std::string userLineInput () {return impl().userLineInput();};
 
-  // This function is called periodically to check if the emulation has to be ended
-  std::function<bool()> endEmulation = nullptr;
+  // REIMPLEMENT: This function should pause the program for a given amount of milliseconds
+  inline void sleepMillis (uint t) {impl().sleepMillis(t);};
 
-  // This function is called every 0.5 seconds and provides t_emulation/t_real
-  std::function<void(float)> informEmuRate = nullptr;
+  // REIMPLEMENT: This function should return the current real time in microseconds
+  inline ulong realTimeMicros () {return impl().realTimeMicros();};
 
-  // Called every 32 times a second, receives as argument the left and right audio buffers, respectively
-  std::function<void(AudioPacket&&)> playAudio = nullptr;
+  // REIMPLEMENT: Called every 32 times a second, receives as argument the left and right audio buffers, respectively
+  inline void playAudio (AudioPacket&& ap) {impl().playAudio(std::move(ap));};
+
+  inline ScreenPixels* updateScreen (ScreenPixels* sf) {
+    std::lock_guard<std::mutex> lock(screen_mutex);
+    std::swap(screen_frames[1], screen_frames[2]);
+    return screen_frames[2];
+  };
+
+  inline bool endEmulation () {return end_emulation;};
+
+  inline void informEmuRate (float r) {emu_rate = r;};
+
+  inline Byte readButtons () {return buttons;};
+
+
+  // PLATFORM SIDE FUNCTIONS
+
+  // This function returns a ScreenFrame, which contains the value of each pixel in an intensity
+  // scale from 0 to 3, where 0 is white and 3 black. NEVER call delete or free on the returned ptr.
+  inline ScreenPixels* getLatestScreen () {
+    std::lock_guard<std::mutex> lock(screen_mutex);
+    std::swap(screen_frames[0], screen_frames[1]);
+    return screen_frames[0];
+  }
+
+  // This function receives a Byte in which a 1 corresponds to some button being pressed. The bit to
+  // button mapping is defined in the Buttons enum
+  void setButtons (Byte buttons_pressed) {buttons = buttons_pressed;}
+
+  void requestEmulationEnd() {end_emulation = true;}
+
+  // Updated every 0.5s; provides the ratio t_emulation/t_real
+  float emuRate () {return emu_rate;};
+
+protected:
+
+  HardwareInterface() {
+    for (auto &sf : screen_frames) {
+      sf = new ScreenPixels;
+    }
+  }
+
+  ~HardwareInterface() {
+    for (auto &sf : screen_frames) {
+      delete sf;
+      sf = nullptr;
+    }
+  }
 };

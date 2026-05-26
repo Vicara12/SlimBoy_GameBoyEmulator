@@ -8,18 +8,13 @@
 #include <utility>
 #include "state.h"
 #include "interface.h"
+#include "utils/debug.h"
+#include "utils/debuginstr.h"
+#include "instructions/instruction.h"
+#include "graphics/graphics.h"
+#include "audio/audio.h"
 
 #define INSTRS_PER_BUTTON_UPDATE 64 // Each X instructions the new buttons pressed check is run
-
-
-typedef struct {
-  Short breakpoint = 0xFFFF;
-  int exec_n = -1;
-  std::array<int, 3> rom_bp = {-1,-1,-1};
-} ExecutionDebug;
-
-
-void execute (State *state, Interface *interface, const ExecutionDebug &db = ExecutionDebug());
 
 
 inline void updateTimeRegisters (State *state)
@@ -41,10 +36,11 @@ inline void updateTimeRegisters (State *state)
 }
 
 
-inline void updateButtons (ulong n_instrs, State *state, Interface *interface)
+template<class InterfaceT>
+inline void updateButtons (ulong n_instrs, State *state, InterfaceT &interface)
 {
   Byte old_p1_reg = state->memory[P1_REGISTER];
-  Byte button_inputs = interface->readButtons();
+  Byte button_inputs = interface.readButtons();
   Byte input = 0xF0;
   // Low at bit 5 indicates A/B/Sel/Start read
   if ((old_p1_reg & 0x20) == 0) {
@@ -114,18 +110,62 @@ inline void checkAndCallInterrupt (State *state)
 }
 
 
-inline void synchExecution (State *state, Interface *interface)
+template<class InterfaceT>
+inline void synchExecution (State *state, InterfaceT &interface)
 {
-  ulong t_now = interface->realTimeMicros() - state->t_init_emulation;
+  ulong t_now = interface.realTimeMicros() - state->t_init_emulation;
   float emulator_time = float(state->cycles)/CLOCK_FREQ*1e6;
   float emulation_rate = emulator_time/t_now;
   // Update every 500 ms
   if (float(t_now - state->last_rate_call) > 500e3) {
-    interface->informEmuRate(emulation_rate);
+    interface.informEmuRate(emulation_rate);
     state->last_rate_call = t_now;
   }
   float diff_ms = float(emulator_time - state->config.target_speed*t_now)/1e3;
   if (diff_ms > 1) {
-    interface->sleepMillis(diff_ms);
+    interface.sleepMillis(diff_ms);
+  }
+}
+
+
+template<class InterfaceT>
+void execute (State *state, InterfaceT &interface, const ExecutionDebug &db = ExecutionDebug()) {
+  ulong n_instrs = 0;
+  Byte opcode = 0x00, data0 = 0x00, data1 = 0x00;
+
+  while (not state->config.end_emulation and n_instrs != db.exec_n) {
+    if (not state->halted) {
+      opcode = state->memory[state->PC];
+      data0 = state->memory[(state->PC+1)&0xFFFF];
+      data1 = state->memory[(state->PC+2)&0xFFFF];
+      if (state->config.debug) {
+        interface.print(cycleStr(opcode, data0, data1, state) + "\n");
+      }
+      state->PC += instrLen(opcode);
+      state->cycles += executeInstruction(opcode, data0, data1, state);
+    } else {
+      state->cycles += 4; // Make clock work when halted
+    }
+    updateTimeRegisters(state);
+    // Update buttons once normally and hang looking for button input if stopped
+    do {
+      updateButtons(n_instrs, state, interface);
+      if (state->stopped) {
+        interface.sleepMillis(10);
+      }
+    } while (state->stopped);
+    updateGraphics(state, interface);
+    updateAudio(state, interface);
+    checkAndCallInterrupt(state);
+    state->config.end_emulation = interface.endEmulation();
+    synchExecution(state, interface);
+    n_instrs++;
+
+    if (state->PC == db.breakpoint or
+        ((state->memory[state->PC] == db.rom_bp[0]) and
+         (state->memory[(state->PC+1)&0xFFFF] == db.rom_bp[1] or db.rom_bp[1] == -1) and
+         (state->memory[(state->PC+2)&0xFFFF] == db.rom_bp[2] or db.rom_bp[2] == -1))) {
+      break;
+    }
   }
 }

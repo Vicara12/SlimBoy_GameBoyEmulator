@@ -60,15 +60,16 @@
 using PaletteColors = std::array<Byte,4>;
 using ScreenLineData = std::array<float, SCREEN_PX_W>;
 
-
 struct ScreenLine{
   ulong frame_last_updated = 0;
   ScreenLineData pixel;
 };
 
+using ScreenPixels = std::array<ScreenLine, SCREEN_PX_H>;
+
 struct ScreenFrame {
   Byte last_mode = 0;
   bool ly_lyc_flag_already_set = false;
   Byte window_y = 0;
-  std::array<ScreenLine, SCREEN_PX_H> line;
+  ScreenPixels *line;
 };
