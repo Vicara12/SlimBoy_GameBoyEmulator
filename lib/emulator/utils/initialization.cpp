@@ -35,18 +35,10 @@ void loadGame (State *state, GameRom *game_rom)
   if (game_rom == nullptr) {
     return;
   }
-  for (Short i = 0x0100; i < 0x8000; i++) {
-    state->memory[i] = (*game_rom)[i];
-  }
-}
-
-
-void replaceBootRom (State *state, GameRom *game_rom)
-{
-  if (game_rom == nullptr) {
-    return;
-  }
   for (Short i = 0x0000; i < 0x0100; i++) {
+    state->game_boot_rom[i] = (*game_rom)[i];
+  }
+  for (Short i = 0x0100; i < 0x8000; i++) {
     state->memory[i] = (*game_rom)[i];
   }
 }

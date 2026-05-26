@@ -9,76 +9,32 @@
 #include "instructions/miscinstr.h"
 #include "instructions/flowctrlinstr.h"
 
-inline int instrLen (Byte opcode)
+
+inline Short instrLen (Byte opcode)
 {
-  switch (opcode)
-  {
-  // STOP
-  case 0x10:
-  // CB prefix
-  case 0xCB:
-  // JR cc, r8
-  case 0x20:
-  case 0x28:
-  case 0x30:
-  case 0x38:
-  // LD r, d8
-  case 0x06:
-  case 0x0E:
-  case 0x16:
-  case 0x1E:
-  case 0x26:
-  case 0x2E:
-  case 0x36:
-  case 0x3E:
-  // JR r8
-  case 0x18:
-  // LDH (a8), A and LDH A, (a8)
-  case 0xE0:
-  case 0xF0:
-  // ADD/ADC A, d8 and SUB/SBC/AND/OR/XOR/CP d8
-  case 0xC6:
-  case 0xD6:
-  case 0xE6:
-  case 0xF6:
-  case 0xCE:
-  case 0xDE:
-  case 0xEE:
-  case 0xFE:
-  // ADD SP,r8
-  case 0xE8:
-  // LD HL,SP+r8
-  case 0xF8:
-    return 2;
+  static const Byte INSTR_LENGTHS[256] = {
+  //0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    1, 3, 1, 1, 1, 1, 2, 1, 3, 1, 1, 1, 1, 1, 2, 1, // 0x00
+    2, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1, // 0x10
+    2, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1, // 0x20
+    2, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1, // 0x30
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0x40
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0x50
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0x60
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0x70
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0x80
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0x90
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0xA0
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0xB0
+    1, 1, 3, 3, 3, 1, 2, 1, 1, 1, 3, 2, 3, 3, 2, 1, // 0xC0
+    1, 1, 3, 1, 3, 1, 2, 1, 1, 1, 3, 1, 3, 1, 2, 1, // 0xD0
+    2, 1, 1, 1, 1, 1, 2, 1, 2, 1, 3, 1, 1, 1, 2, 1, // 0xE0
+    2, 1, 1, 1, 1, 1, 2, 1, 2, 1, 3, 1, 1, 1, 2, 1  // 0xF0
+  };
 
-  // LD nn, d16
-  case 0x01:
-  case 0x11:
-  case 0x21:
-  case 0x31:
-  // LD (a16),SP
-  case 0x08:
-  // JP a16 and JP cc, a16
-  case 0xC2:
-  case 0xCA:
-  case 0xD2:
-  case 0xDA:
-  case 0xC3:
-  // CALL cc, a16 and CALL a16
-  case 0xC4:
-  case 0xCC:
-  case 0xD4:
-  case 0xDC:
-  case 0xCD:
-  // LD (a16), A and LD A, (a16)
-  case 0xEA:
-  case 0xFA:
-    return 3;
-
-  default:
-    return 1;
-  }
+  return INSTR_LENGTHS[opcode];
 }
+
 
 inline int executeCBInstruction (Byte opcode, State *state)
 {

@@ -32,7 +32,6 @@ inline ulong getDivFromTAC (Byte value_TAC) {
 
 struct InternalConfig {
   float target_speed = 1.0;
-  bool debug = false;
   bool end_emulation = false;
 };
 
@@ -64,4 +63,6 @@ struct State {
   ScreenFrame screen;
   AudioState audio;
   InternalConfig config;
+  Byte game_boot_rom[0x0100] = {0};
+  bool boot_rom_replaced = false;
 };

@@ -8,7 +8,6 @@
 #include <utility>
 #include "state.h"
 #include "interface.h"
-#include "utils/debug.h"
 #include "utils/debuginstr.h"
 #include "instructions/instruction.h"
 #include "graphics/graphics.h"
@@ -130,17 +129,17 @@ inline void synchExecution (State *state, InterfaceT &interface)
 }
 
 
-template<class InterfaceT>
-void execute (State *state, InterfaceT &interface, const ExecutionDebug &db = ExecutionDebug()) {
+template<class InterfaceT, bool debug>
+void execute (State *state, InterfaceT &interface) {
   ulong n_instrs = 0;
   Byte opcode = 0x00, data0 = 0x00, data1 = 0x00;
 
-  while (not state->config.end_emulation and n_instrs != db.exec_n) {
+  while (not state->config.end_emulation) {
     if (not state->halted) {
       opcode = state->memory[state->PC];
       data0 = state->memory[(state->PC+1)&0xFFFF];
       data1 = state->memory[(state->PC+2)&0xFFFF];
-      if (state->config.debug) {
+      if constexpr (debug) {
         interface.print(cycleStr(opcode, data0, data1, state) + "\n");
       }
       state->PC += instrLen(opcode);
@@ -162,12 +161,5 @@ void execute (State *state, InterfaceT &interface, const ExecutionDebug &db = Ex
     state->config.end_emulation = interface.endEmulation();
     synchExecution(state, interface);
     n_instrs++;
-
-    if (state->PC == db.breakpoint or
-        ((state->memory[state->PC] == db.rom_bp[0]) and
-         (state->memory[(state->PC+1)&0xFFFF] == db.rom_bp[1] or db.rom_bp[1] == -1) and
-         (state->memory[(state->PC+2)&0xFFFF] == db.rom_bp[2] or db.rom_bp[2] == -1))) {
-      break;
-    }
   }
 }

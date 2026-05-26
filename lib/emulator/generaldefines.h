@@ -28,6 +28,8 @@
 #define TMA_REGISTER  0xFF06 // Value written to TIMA at overflow
 #define TAC_REGISTER  0xFF07 // Timer control
 
+#define BOOT_ROM_REGISTER 0xFF50 // Boot ROM mapping control
+
 #define IF_REGISTER   0xFF0F // Interrupt flag
 #define IE_REGISTER   0xFFFF // Interrupt Enable
 

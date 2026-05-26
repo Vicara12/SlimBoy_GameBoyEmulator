@@ -51,6 +51,12 @@ inline void writeMem (Short addr, Byte data, State* state)
   else if (addr == NR44_REGISTER) {
     state->audio.ch4.NR44_written = true;
   }
+  else if (addr == BOOT_ROM_REGISTER and not state->boot_rom_replaced) {
+    state->boot_rom_replaced = true;
+    for (Short i = 0x0000; i < 0x0100; i++) {
+      state->memory[i] = state->game_boot_rom[i];
+    }
+  }
   // If write to DIV (0xFF04) register, set its value to zero
   else if (addr == DIV_REGISTER) {
     state->cycles_last_DIV = state->cycles; // it will be set to zero next time its updated

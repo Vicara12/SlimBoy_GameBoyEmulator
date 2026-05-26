@@ -6,8 +6,9 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 #include "types.h"
-#include "utils/debug.h"
+#include "instructions/instruction.h"
 
 
 typedef struct {
@@ -19,6 +20,22 @@ typedef struct {
   bool flags = false;
   Short memory = 0x0000; // 0 = no memory touched
 } Touched;
+
+
+inline std::string formatByte (Byte b, bool inc_0x = false) {
+  std::stringstream ss;
+  // Convert b to short because for some reason it does not like uint8_t (Byte)
+  ss << (inc_0x ? "0x" : "") << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << Short(b);
+  return ss.str();
+}
+
+
+inline std::string formatShort (Short s, bool inc_0x = false) {
+  std::stringstream ss;
+  ss << (inc_0x ? "0x" : "") << std::setfill('0') << std::setw(4) << std::hex << std::uppercase << s;
+  return ss.str();
+}
+
 
 
 inline std::string formatInt (int n)
