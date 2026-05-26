@@ -32,6 +32,5 @@ int main (int argc, char **argv) {
   sf::RenderWindow window = createWindow(PX_WIDTH);
   PCInterface interface;
   std::thread emulation_thread(emulator<PCInterface>, std::ref(interface), &game_rom, config);
-  emulation_thread.detach();
   interfaceLoop(interface, emulation_thread, window);
 }

@@ -26,6 +26,7 @@ void emulator (InterfaceT &interface, GameRom *game_rom, EmulatorConfig cfg) {
   state->t_init_emulation = interface.realTimeMicros();
   state->config.debug = cfg.debug;
   state->config.target_speed = cfg.synch_execution ? 1 : std::numeric_limits<float>::max();
+  state->screen.line = interface.updateScreen();
   resetAudioBuffers(state->audio);
   ExecutionDebug edb;
   edb.breakpoint = 0x0100; // Set breakpoint at the end of boot rom

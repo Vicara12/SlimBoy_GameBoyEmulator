@@ -357,7 +357,7 @@ inline void updateGraphics (State *state, InterfaceT &interface)
     renderLine(line_n, state);
     // If rendered last line of frame and frame has been rendered from line 0, call screen update
     if (line_n == SCREEN_PX_H-1 and current_frame == (*state->screen.line)[0].frame_last_updated) {
-      state->screen.line = interface.updateScreen(state->screen.line);
+      state->screen.line = interface.updateScreen();
       for (auto &l : *state->screen.line) {
         l.frame_last_updated = 0;
       }

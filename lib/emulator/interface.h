@@ -36,6 +36,7 @@ class HardwareInterface {
   float emu_rate = 1.f;
   Byte buttons = 0x00;
   bool end_emulation = false;
+  bool new_frame = false;
 
   inline Derived& impl() {return *static_cast<Derived*>(this);};
 
@@ -58,8 +59,9 @@ public:
   // REIMPLEMENT: Called every 32 times a second, receives as argument the left and right audio buffers, respectively
   inline void playAudio (AudioPacket&& ap) {impl().playAudio(std::move(ap));};
 
-  inline ScreenPixels* updateScreen (ScreenPixels* sf) {
+  inline ScreenPixels* updateScreen () {
     std::lock_guard<std::mutex> lock(screen_mutex);
+    new_frame = true;
     std::swap(screen_frames[1], screen_frames[2]);
     return screen_frames[2];
   };
@@ -77,7 +79,11 @@ public:
   // scale from 0 to 3, where 0 is white and 3 black. NEVER call delete or free on the returned ptr.
   inline ScreenPixels* getLatestScreen () {
     std::lock_guard<std::mutex> lock(screen_mutex);
-    std::swap(screen_frames[0], screen_frames[1]);
+    // Swapping when there is no new frame available can lead to printing an old frame
+    if (new_frame) {
+      std::swap(screen_frames[0], screen_frames[1]);
+    }
+    new_frame = false;
     return screen_frames[0];
   }
 

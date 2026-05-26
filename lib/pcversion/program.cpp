@@ -107,7 +107,7 @@ void interfaceLoop (
     // Audio is handled automatically by the audio stream in if_data
     drawScreen(window, interface);
     if (exit) {
-      interface.endEmulation();
+      interface.requestEmulationEnd();
       if (emulation_thread.joinable()) {
         emulation_thread.join();
       }
