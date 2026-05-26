@@ -13,6 +13,7 @@ auto emu_cfg = EmulatorConfig{
   .skip_boot_room = false
 };
 const std::string game_path_ = "/Tetris.gb";
+// const std::string game_path_ = "/Dr_Mario.gb";
 
 
 // void launchEmulator () {
