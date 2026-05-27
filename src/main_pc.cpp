@@ -3,10 +3,9 @@
 #include "interfaceadapter.h"
 #include "program.h"
 #include "emulator.h"
-#include "tetris.h"
 
 
-#define PX_WIDTH 4
+inline constexpr int PX_WIDTH = 4;
 
 
 int main (int argc, char **argv) {
@@ -17,7 +16,8 @@ int main (int argc, char **argv) {
       return 1;
     }
   } else {
-    std::copy(tetris_rom.begin(), tetris_rom.end(), game_rom.begin());
+    std::cout << "ERROR: No game provided." << std::endl;
+    return 1;
   }
   EmulatorConfig config = {
     .synch_execution = true,
@@ -25,6 +25,6 @@ int main (int argc, char **argv) {
   };
   sf::RenderWindow window = createWindow(PX_WIDTH);
   PCInterface interface;
-  std::thread emulation_thread(emulator<PCInterface,false>, std::ref(interface), &game_rom, config);
+  std::thread emulation_thread(emulator<PCInterface,false>, std::ref(interface), game_rom, config);
   interfaceLoop(interface, emulation_thread, window);
 }

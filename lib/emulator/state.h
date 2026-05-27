@@ -5,35 +5,11 @@
 
 #pragma once
 
-#include "types.h"
-#include "interface.h"
-#include "generaldefines.h"
+#include "memory/memory.h"
 #include "graphics/graphicstate.h"
 #include "audio/audiostate.h"
+#include "cpu/timingstate.h"
 
-
-inline ulong getDivFromTAC (Byte value_TAC) {
-  switch (GET_TAC_CLOCK_SEL(value_TAC))
-  {
-  case 0b00:
-    return (1 << 10);
-  case 0b01:
-    return (1 << 4);
-  case 0b10:
-    return (1 << 6);
-  case 0b11:
-    return (1 << 8);
-  default:
-    break;
-  }
-  return 1;
-}
-
-
-struct InternalConfig {
-  float target_speed = 1.0;
-  bool end_emulation = false;
-};
 
 
 struct State {
@@ -47,22 +23,14 @@ struct State {
   Reg L = 0;
   DReg SP = 0xFFFE;
   DReg PC = 0x0000;
-  Byte memory[GB_MEM_SIZE] = {0};
+  Memory memory;
   bool halted = false;
   bool stopped = false;
   bool ime = false; // Interrupt Master Enable cpu flag
   ulong cycles = 0; // Total execution cycles (execution clock)
-  ulong cycles_last_DIV = 0;  // Counts the execution cycles of the last write to DIV
-  ulong cycles_last_TIMA = 0; // Cycles of last TIMA overflow
-  ulong cycles_div_TIMA = getDivFromTAC(0);
-  bool enable_TIMA = false;
-  bool vram_write_enabled = true;
-  bool oam_write_enabled = true;
-  ulong t_last_synch = 0;
-  ulong cycles_last_synch = 0;
+  Timing timing;
   ScreenFrame screen;
   AudioState audio;
-  InternalConfig config;
-  Byte game_boot_rom[0x0100] = {0};
-  bool boot_rom_replaced = false;
+  float target_speed = 1.0;
+  bool end_emulation = false;
 };

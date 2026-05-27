@@ -30,21 +30,13 @@ void readGameRom(const std::string &game_path) {
   if (not file || file.isDirectory())
     throw std::runtime_error("Could not open file: " + game_path);
 
-  if (file.size() != game_rom.size()) {
-    Serial.println("ROM and buffer size mismatch");
-    while (true) delay(1000);
-  }
+  game_rom.reserve(file.size());
 
   size_t counter = 0;
   while (file.available())
-    game_rom[counter++] = file.read();
+    game_rom.push_back(file.read());
 
   file.close();
-
-  if (counter != game_rom.size()) {
-    Serial.println("Could not read full content of ROM");
-    while (true) delay(1000);
-  }
 }
 
 void setup() {
@@ -55,7 +47,7 @@ void setup() {
   readGameRom(game_path_);
   Serial.println("Done reading game ROM");
   
-  emulator<ESP32Interface, false>(*interface, &game_rom, emu_cfg);
+  emulator<ESP32Interface, false>(*interface, game_rom, emu_cfg);
 }
 
 void loop() {

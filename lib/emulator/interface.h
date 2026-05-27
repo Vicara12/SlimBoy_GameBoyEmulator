@@ -9,19 +9,6 @@
 #include "audio/audiostate.h"
 
 
-// Button defines for readButtons function
-enum class Button : Byte {
-  Right  = 0x01,
-  Left   = 0x02,
-  Up     = 0x04,
-  Down   = 0x08,
-  A      = 0x10,
-  B      = 0x20,
-  Select = 0x40,
-  Start  = 0x80
-};
-
-
 
 // This template class contains the function declarations that get called whenever interaction with
 // the underlying hardware is needed (for example for button input or timing).
@@ -36,6 +23,7 @@ class HardwareInterface {
   float emu_rate = 1.f;
   Byte buttons = 0x00;
   bool end_emulation = false;
+  bool emulation_ended = false;
   bool new_frame = false;
 
   inline Derived& impl() {return *static_cast<Derived*>(this);};
@@ -68,6 +56,8 @@ public:
 
   inline bool endEmulation () {return end_emulation;};
 
+  inline void informEmulationEnded () {emulation_ended = true;}
+
   inline void informEmuRate (float r) {emu_rate = r;};
 
   inline Byte readButtons () {return buttons;};
@@ -91,10 +81,12 @@ public:
   // button mapping is defined in the Buttons enum
   void setButtons (Byte buttons_pressed) {buttons = buttons_pressed;}
 
-  void requestEmulationEnd() {end_emulation = true;}
+  void requestEmulationEnd () {end_emulation = true;}
+
+  bool emulationEnded () const {return emulation_ended;}
 
   // Updated every 0.5s; provides the ratio t_emulation/t_real
-  float emuRate () {return emu_rate;};
+  float emuRate () const {return emu_rate;};
 
 protected:
 

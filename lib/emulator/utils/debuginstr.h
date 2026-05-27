@@ -8,10 +8,11 @@
 #include <sstream>
 #include <iomanip>
 #include "types.h"
+#include "instructions/instructiondefines.h"
 #include "instructions/instruction.h"
 
 
-typedef struct {
+struct Touched {
   bool AF = false;
   bool BC = false;
   bool DE = false;
@@ -19,7 +20,7 @@ typedef struct {
   bool SP = false;
   bool flags = false;
   Short memory = 0x0000; // 0 = no memory touched
-} Touched;
+};
 
 
 inline std::string formatByte (Byte b, bool inc_0x = false) {
@@ -534,11 +535,11 @@ inline std::string instrStr (Byte opcode, Byte data0, Byte data1, Touched &touch
   }
 }
 
-inline std::string cycleStr (Byte opcode, Byte data0, Byte data1, State *state)
+inline std::string cycleStr (Byte opcode, Byte data0, Byte data1, State &state)
 {
   // Prepare instruction preamble (PC and instr bytes)
   int instr_len = instrLen(opcode);
-  std::string preamble = formatShort(state->PC) + " [" + formatByte(opcode);
+  std::string preamble = formatShort(state.PC) + " [" + formatByte(opcode);
   switch (instr_len)
   {
   case 1:
@@ -563,8 +564,8 @@ inline std::string cycleStr (Byte opcode, Byte data0, Byte data1, State *state)
                   << " BC:" << formatShort(REG_BC(state))
                   << " DE:" << formatShort(REG_DE(state))
                   << " HL:" << formatShort(REG_HL(state))
-                  << " SP:" << formatShort(state->SP)
-                  << " IME" << (state->ime ? "1" : "0");
+                  << " SP:" << formatShort(state.SP)
+                  << " IME" << (state.ime ? "1" : "0");
 
   return preamble + " " + instr + " " + state_ss.str();
 }

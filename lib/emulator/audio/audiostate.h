@@ -3,13 +3,14 @@
 #include <vector>
 #include <limits>
 #include "types.h"
-#include "generaldefines.h"
+#include "cpu/timingstate.h"
 
 
-#define SAMPLE_RATE       32768
-#define AUDIO_UPDATE_FREQ 32
-#define AUDIO_BUFFER_SIZE (SAMPLE_RATE / AUDIO_UPDATE_FREQ)
-#define PUSH_AUDIO_EACH   (CLOCK_FREQ / SAMPLE_RATE)
+inline constexpr ulong SAMPLE_RATE       = 32768;
+inline constexpr ulong AUDIO_UPDATE_FREQ = 32;
+inline constexpr ulong AUDIO_BUFFER_SIZE = SAMPLE_RATE / AUDIO_UPDATE_FREQ;
+inline constexpr ulong PUSH_AUDIO_EACH   = CLOCK_FREQ / SAMPLE_RATE;
+
 
 enum class AudioChannel : int {
   CH1 = 1,
@@ -17,34 +18,6 @@ enum class AudioChannel : int {
   CH3 = 3,
   CH4 = 4
 };
-
-
-#define NR10_REGISTER 0xFF10 // Channel 1 sweep
-#define NR11_REGISTER 0xFF11 // Channel 1 length timer & duty cycle
-#define NR12_REGISTER 0xFF12 // Channel 1 volume & envelope
-#define NR13_REGISTER 0xFF13 // Channel 1 period low
-#define NR14_REGISTER 0xFF14 // Channel 1 period high & control
-
-#define NR21_REGISTER 0xFF16 // Channel 2 length timer & duty cycle
-#define NR22_REGISTER 0xFF17 // Channel 2 volume & envelope
-#define NR23_REGISTER 0xFF18 // Channel 2 period low
-#define NR24_REGISTER 0xFF19 // Channel 2 period high & control
-
-#define NR30_REGISTER 0xFF1A // Channel 3 DAC enable
-#define NR31_REGISTER 0xFF1B // Channel 3 length timer
-#define NR32_REGISTER 0xFF1C // Channel 3 output level
-#define NR33_REGISTER 0xFF1D // Channel 3 period low
-#define NR34_REGISTER 0xFF1E // Channel 3 period high & control
-#define WAVE_PAT_REGISTER 0xFF30 // Channel 3 wave pattern RAM until 0xFF3F
-
-#define NR41_REGISTER 0xFF20 // Channel 4 length timer
-#define NR42_REGISTER 0xFF21 // Channel 4 volume & envelope
-#define NR43_REGISTER 0xFF22 // Channel 4 frequency & randomness
-#define NR44_REGISTER 0xFF23 // Channel 4 control
-
-#define NR50_REGISTER 0xFF24 // Master volume & VIN panning
-#define NR51_REGISTER 0xFF25 // Sound panning
-#define NR52_REGISTER 0xFF26 // Audio master control
 
 
 constexpr std::array<std::array<Byte,8>,4> AUDIO_SEQUENCER {{
@@ -72,8 +45,6 @@ struct PulseChannelData {
   Byte volume = 0;
   Byte envelope_pace = 0;
   Byte last_pace = 0;
-  bool NRX4_written = true; // Control register
-  bool NRX2_written = true; // Volume and envelope control
   bool on = false;
 };
 
@@ -83,7 +54,6 @@ struct WaveChannelData {
   ulong auto_off_clk = std::numeric_limits<ulong>::max();
   Byte ram_idx = 0;
   Byte signal_value = 0;
-  bool NR34_written = true;
   bool on = false;
 };
 
@@ -97,8 +67,6 @@ struct NoiseChannelData {
   Byte signal_value = 0;
   Byte volume = 0;
   Byte envelope_pace = 0;
-  bool NR43_written = true;
-  bool NR44_written = true;
   bool on = false;
 };
 

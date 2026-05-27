@@ -2,6 +2,7 @@
 #include <fstream>
 #include "program.h"
 #include "graphics/graphicstate.h"
+#include "cpu/buttoninputs.h"
 #include "interfaceadapter.h"
 
 
@@ -26,8 +27,8 @@ bool readRom (const std::string &path, GameRom &game_rom) {
     return false;
   }
   file.seekg(0, std::ios::beg); // go back to the beginning of the file
-  game_rom.fill(0x00);
-  if (!file.read(reinterpret_cast<char*>(&game_rom), fileSize)) {
+  game_rom.resize(fileSize);
+  if (not file.read(reinterpret_cast<char*>(game_rom.data()), fileSize)) {
       std::cerr << "Error: Unable to read the file contents." << std::endl;
       return false;
   }
@@ -108,6 +109,9 @@ void interfaceLoop (
     drawScreen(window, interface);
     if (exit) {
       interface.requestEmulationEnd();
+      while (not interface.emulationEnded()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
       if (emulation_thread.joinable()) {
         emulation_thread.join();
       }
