@@ -366,11 +366,8 @@ template<class InterfaceT>
 inline void updateGraphics (State &state, InterfaceT &interface)
 {
   if (not LCDEnabled(state)) {
-    // Screen has just been disabled, clear state
-    if (state.memory.specialAddrWritten(Addr::LCDC)) {
-      state.memory.f(Addr::STAT) &= 0xFC; // Clear bits 0 & 1, set mode 0
-      state.memory.f(Addr::LY) = 0;
-    }
+    state.memory.f(Addr::STAT) &= 0xFC; // Clear bits 0 & 1, set mode 0
+    state.memory.f(Addr::LY) = 0;
     return;
   }
 
