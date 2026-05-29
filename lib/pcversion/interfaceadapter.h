@@ -24,6 +24,8 @@ public:
 
   inline void print (const std::string_view &s) {std::cout << s;};
 
+  inline void println (const std::string_view &s) {std::cout << s << std::endl;};
+
   inline std::string userLineInput () {std::string line; std::getline(std::cin, line); return line;};
 
   inline void sleepMillis (uint t) {std::this_thread::sleep_for(std::chrono::milliseconds(t));};

@@ -35,6 +35,9 @@ public:
   // IMPLEMENT: This function takes a string and prints it (either on console, serial, etc)
   inline void print (const std::string_view &s) {impl().print(s);};
 
+  // IMPLEMENT: Same as print, but adds end of line
+  inline void println (const std::string_view &s) {impl().println(s);};
+
   // IMPLEMENT: This function should return a line introduced by the user
   inline std::string userLineInput () {return impl().userLineInput();};
 

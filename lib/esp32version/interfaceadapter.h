@@ -9,6 +9,8 @@ public:
 
   inline void print (const std::string_view &s) {}
 
+  inline void println (const std::string_view &s) {}
+
   inline std::string userLineInput () {return "";}
 
   inline void sleepMillis (uint t) {delay(t);}

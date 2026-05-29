@@ -75,7 +75,41 @@ enum Addr : Short {
 };
 
 
+// TODO support unmapped RAM bank access
+
+
 class Memory {
+public:
+
+  enum class CtrlType {None, MBC1, MBC2, MBC3, MBC4, MBC5, MBC6, MBC7, MMM01, HuC1, HuC3};
+
+  struct CartHardware {
+    Memory::CtrlType controller;
+    int n_rom_banks = 0;
+    int n_ram_banks = 0;
+    bool ram = false;
+    bool battery = false;
+    bool timer = false;
+  };
+
+  static inline std::string ctrlTypeToStr (CtrlType type) {
+    switch (type) {
+      case CtrlType::None:  return "ROM Only";
+      case CtrlType::MBC1:  return "MBC1";
+      case CtrlType::MBC2:  return "MBC2";
+      case CtrlType::MBC3:  return "MBC3";
+      case CtrlType::MBC4:  return "MBC4";
+      case CtrlType::MBC5:  return "MBC5";
+      case CtrlType::MBC6:  return "MBC6";
+      case CtrlType::MBC7:  return "MBC7";
+      case CtrlType::MMM01: return "MMM01";
+      case CtrlType::HuC1:  return "HuC1";
+      case CtrlType::HuC3:  return "HuC3";
+    }
+    return "Unknown";
+  }
+
+private:
 
   static constexpr Byte BOOT_ROM_DATA [] = {
     0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E,
@@ -114,7 +148,7 @@ class Memory {
 
 public:
 
-  inline bool initialize (const std::vector<Byte> &game_rom) {
+  inline bool initialize (const std::vector<Byte> &game_rom, const CartHardware &hardware) {
     game_boot_rom = std::array<Byte,0x0100>();
     for (Short i = 0x0000; i < 0x0100; i++) {
       (*game_boot_rom)[i] = game_rom[i];
@@ -123,7 +157,7 @@ public:
     for (Short i = 0x0100; i < 0x8000; i++) {
       memory[i] = game_rom[i];
     }
-    return true; // TODO check game rom size and bank assignation
+    return true;
   }
 
 
@@ -165,6 +199,7 @@ public:
     else if (addr == Addr::BANK) {replaceBootRom();}
     else if (addr == Addr::DMA ) {performDMATransfer(data);}
     else if (addr >= 0xFF00) {special_addr_written[addr & 0xFF] = true;}
+    // TODO optimize with a switch
   }
 
   inline bool specialAddrWritten (Short addr) {
