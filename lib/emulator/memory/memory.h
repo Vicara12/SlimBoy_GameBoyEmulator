@@ -220,10 +220,8 @@ public:
       hardware.controller != CtrlType::None and
       hardware.controller != CtrlType::MBC1
     ) {
-      throw std::runtime_error(std::format(
-        "Bank controller type {} is not implemented",
-        ctrlTypeToStr(hardware.controller)
-        )
+      throw std::runtime_error(
+        "Bank controller type " + ctrlTypeToStr(hardware.controller) + " is not implemented"
       );
     }
 

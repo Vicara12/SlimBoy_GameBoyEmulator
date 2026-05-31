@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
-#include <format>
+#include "utils/debuginstr.h"
 #include "interface.h"
 #include "state.h"
 #include "types.h"
@@ -22,19 +22,16 @@ struct CartridgeInfo {
 
 template<class InterfaceT>
 inline void printCartridgeInfo (const CartridgeInfo &info, InterfaceT &interface) {
-  interface.print(std::format("Title: {}\n", info.game_title));
-  interface.print(std::format("Version: {}\n", info.version_number));
-  interface.print(std::format("Dest.: {}\n", (info.japanese ? "Japan" : "Overseas")));
-  interface.print(std::format("Manufacturer: {}\n", info.manufacturer));
-  interface.print(std::format("Num. ROM banks: {}\n", info.hardware.n_rom_banks));
-  interface.print(std::format("Num. RAM banks: {}\n", info.hardware.n_ram_banks));
-  interface.print(std::format(
-    "MBC hardware: {}{}{}{}\n",
-    Memory::ctrlTypeToStr(info.hardware.controller),
-    (info.hardware.ram ? " + RAM" : ""),
-    (info.hardware.battery ? " + BATTERY" : ""),
+  interface.println("Title: " + info.game_title);
+  interface.println("Version: " + info.version_number);
+  interface.println("Dest.: " + std::string(info.japanese ? "Japan" : "Overseas"));
+  interface.println("Manufacturer: " + info.manufacturer);
+  interface.println("Num. ROM banks: " + info.hardware.n_rom_banks);
+  interface.println("Num. RAM banks: " + info.hardware.n_ram_banks);
+  interface.println(
+    "MBC hardware: " + Memory::ctrlTypeToStr(info.hardware.controller) +
+    (info.hardware.ram ? " + RAM" : "") + (info.hardware.battery ? " + BATTERY" : "") +
     (info.hardware.battery ? " + TIMER" : "")
-    )
   );
 }
 
@@ -46,7 +43,7 @@ inline int numRomBanks (Byte val_addr_0148) {
   if (val_addr_0148 == 0x53) return 80;
   if (val_addr_0148 == 0x54) return 96;
   throw std::runtime_error(
-    std::format("Unrecognized byte value for ROM size (addr 0x0148): 0x{:02x}", val_addr_0148)
+    "Unrecognized byte value for ROM size (addr 0x0148): " + formatByte(val_addr_0148)
   );
 }
 
@@ -66,7 +63,7 @@ inline int numRamBanks (Byte val_addr_0149) {
       return 8;
   }
   throw std::runtime_error(
-    std::format("Unrecognized byte value for RAM size (addr 0x0149): 0x{:02x}", val_addr_0149)
+    "Unrecognized byte value for RAM size (addr 0x0149): " + formatByte(val_addr_0149)
   );
 }
 
@@ -113,7 +110,7 @@ inline Memory::CartHardware parseType(Byte val_addr_0147) {
   }
   
   throw std::runtime_error(
-    std::format("Unrecognized byte value for cartridge type (addr 0x0147): 0x{:02x}", val_addr_0147)
+    "Unrecognized byte value for cartridge type (addr 0x0147): 0x{:02x}" + formatByte(val_addr_0147)
   );
 }
 
@@ -146,18 +143,15 @@ inline CartridgeInfo parseHeader (const std::vector<Byte> &cartridge) {
 
 inline CartridgeInfo loadGame (const std::vector<Byte> &cartridge, State &state) {
   if (cartridge.size() < 32*1024) {
-    throw std::runtime_error(std::format("Cartridge is smaller than 32Kb: {} bytes", cartridge.size()));
+    throw std::runtime_error("Cartridge is smaller than 32Kb: {} bytes" + std::to_string(cartridge.size()));
   }
 
   CartridgeInfo cart_info = parseHeader(cartridge);
   size_t expected_cart_size = (1 << 14) * cart_info.hardware.n_rom_banks;
   if (cartridge.size() != expected_cart_size) {
     throw std::runtime_error(
-      std::format(
-        "Expected cartridge of size {} bytes but got {} bytes",
-        expected_cart_size, 
-        cartridge.size()
-      )
+        "Expected cartridge of size " + std::to_string(expected_cart_size) + " bytes but got " +
+        std::to_string(cartridge.size()) + " bytes"
     );
   }
 

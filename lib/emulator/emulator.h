@@ -41,7 +41,7 @@ void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorCon
     delete state;
     interface.informEmulationEnded();
   } catch (const std::exception &e) {
-    interface.println(std::format("ERROR: {}", e.what()));
+    interface.println("ERROR: {}" + std::string(e.what()));
     interface.informEmulationEnded();
   }
 }

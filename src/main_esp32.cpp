@@ -30,12 +30,9 @@ void readGameRom(const std::string &game_path) {
   if (not file || file.isDirectory())
     throw std::runtime_error("Could not open file: " + game_path);
 
-  game_rom.reserve(file.size());
-
-  size_t counter = 0;
-  while (file.available())
-    game_rom.push_back(file.read());
-
+  size_t file_size = file.size();
+  game_rom.resize(file_size);
+  file.read(game_rom.data(), file_size);
   file.close();
 }
 
