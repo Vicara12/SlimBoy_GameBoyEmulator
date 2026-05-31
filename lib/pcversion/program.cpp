@@ -22,10 +22,6 @@ bool readRom (const std::string &path, GameRom &game_rom) {
       return false;
   }
   std::streamsize fileSize = file.tellg();
-  if (fileSize > 0x8000) {
-    std::cerr << "Error: File is larger than " << 0x8000 << " bytes: " << fileSize << std::endl;
-    return false;
-  }
   file.seekg(0, std::ios::beg); // go back to the beginning of the file
   game_rom.resize(fileSize);
   if (not file.read(reinterpret_cast<char*>(game_rom.data()), fileSize)) {

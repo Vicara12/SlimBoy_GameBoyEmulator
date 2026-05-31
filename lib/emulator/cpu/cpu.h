@@ -36,15 +36,16 @@ void execute (State &state, InterfaceT &interface) {
     updateTimeRegisters(state);
     // Update buttons once normally and hang looking for button input if stopped
     do {
+      // This is here so that emulator doesn't freeze on stop
+      state.end_emulation = interface.endEmulation();
       updateButtons(n_instrs, state, interface);
       if (state.stopped) {
         interface.sleepMillis(10);
       }
-    } while (state.stopped);
+    } while (state.stopped and not state.end_emulation);
     updateGraphics(state, interface);
     updateAudio(state, interface);
     checkAndCallInterrupt(state);
-    state.end_emulation = interface.endEmulation();
     synchExecution(state, interface);
     n_instrs++;
   }

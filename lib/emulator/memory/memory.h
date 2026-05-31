@@ -130,41 +130,145 @@ private:
     0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50
   };
 
-  std::array<Byte,GB_MEM_SIZE> memory;
+  static constexpr size_t MEM_BLOCK_SIZE = 8*1024;
+  static constexpr size_t NUM_MEM_BLOCKS = 0x10000/MEM_BLOCK_SIZE;
+  static constexpr size_t MEM_BLOCK_MASK = MEM_BLOCK_SIZE-1;
+
+  using MemBlock = std::array<Byte,MEM_BLOCK_SIZE>;
+
+
+  std::array<MemBlock*,NUM_MEM_BLOCKS> memory;
   std::optional<std::array<Byte,0x0100>> game_boot_rom;
   std::array<bool,0x0100> special_addr_written = {false};
+  std::vector<MemBlock> rom_bank;
+  std::vector<MemBlock> ram_bank;
+  Byte rom_bank_idx_low = 1; // Lower 5 bits of rom bank
+  Byte rom_ram_bank_idx = 0; // Upper 2 bits of rom bank or ram bank idx
+  bool ram_mode_select = false;
+  bool ram_enabled = false;
   bool vram_w_enabled = false;
   bool oam_w_enabled = false;
   bool lcd_enabled = false;
+  CartHardware hardware;
 
 
   inline void performDMATransfer (Byte data) {
-    // TODO select DMA bank!!!!
     Short base_addr = Short(data) << 8;
     for (Short i = 0; i < 0x00A0; i++) {
-      memory[Addr::OAM + i] = memory[base_addr + i];
+      f(Addr::OAM + i) = f(base_addr + i);
     }
   }
 
+
+  inline void changeMemoryBanks (Short addr, Byte data) {
+    // RAM enable
+    if (addr < 0x2000) {
+      ram_enabled = ((data & 0x0F) == 0x0A);
+    }
+    // ROM bank number
+    else if (addr < 0x4000) {
+      data &= 0x1F;
+      data += (data == 0); // If 0 increment by one
+      rom_bank_idx_low = data;
+    }
+    // RAM bank number or upper bits of ROM bank number
+    else if (addr < 0x6000) {
+      rom_ram_bank_idx = (data & 0x03);
+    }
+    // ROM/RAM mode select
+    else {
+      ram_mode_select = (data & 0x01);
+    }
+
+    Byte first_rom_bank_idx = 0, second_rom_bank_idx, ram_bank_idx = 0;
+    second_rom_bank_idx = (rom_ram_bank_idx << 5) | rom_bank_idx_low;
+    second_rom_bank_idx = second_rom_bank_idx % hardware.n_rom_banks;
+    if (ram_mode_select) {
+      first_rom_bank_idx = rom_ram_bank_idx << 5;
+      first_rom_bank_idx = first_rom_bank_idx % hardware.n_rom_banks;
+      ram_bank_idx = rom_ram_bank_idx;
+    }
+
+    if (hardware.n_ram_banks != 0) {
+      ram_bank_idx = (ram_bank_idx) % hardware.n_ram_banks;
+    } else {
+      ram_bank_idx = 0;
+    }
+    
+    // Hook low ROM bank
+    memory[0] = &rom_bank[2*first_rom_bank_idx];
+    memory[1] = &rom_bank[2*first_rom_bank_idx + 1];
+    // Hook high ROM bank
+    memory[2] = &rom_bank[2*second_rom_bank_idx];
+    memory[3] = &rom_bank[2*second_rom_bank_idx + 1];
+    // Hook RAM bank
+    memory[Addr::ExtRAM/MEM_BLOCK_SIZE] = &ram_bank[ram_bank_idx];
+  }
+
+
 public:
 
-  inline bool initialize (const std::vector<Byte> &game_rom, const CartHardware &hardware) {
+  inline ~Memory () {
+    for (size_t idx = 4; idx < NUM_MEM_BLOCKS; idx++) {
+      if (idx != Addr::ExtRAM/MEM_BLOCK_SIZE) {
+        delete memory[idx];
+      }
+    }
+  }
+
+  inline void initialize (const std::vector<Byte> &game_rom, const CartHardware &hardware) {
+    if (
+      hardware.controller != CtrlType::None and
+      hardware.controller != CtrlType::MBC1
+    ) {
+      throw std::runtime_error(std::format(
+        "Bank controller type {} is not implemented",
+        ctrlTypeToStr(hardware.controller)
+        )
+      );
+    }
+
     game_boot_rom = std::array<Byte,0x0100>();
+    rom_bank.resize(2*hardware.n_rom_banks); // A ROM bank is 16kb, but a memory block is 8kb
+    ram_bank.resize(std::max(hardware.n_ram_banks,1));
+
+    // ROM bank 0
+    memory[0] = &rom_bank[0];
+    memory[1] = &rom_bank[1];
+    // R0M bank 1
+    memory[2] = &rom_bank[2];
+    memory[3] = &rom_bank[3];
+
+    // External RAM
+    memory[Addr::ExtRAM/MEM_BLOCK_SIZE] = &ram_bank[0];
+
+    for (size_t idx = 4; idx < NUM_MEM_BLOCKS; idx++) {
+      if (idx != Addr::ExtRAM/MEM_BLOCK_SIZE) {
+        memory[idx] = new MemBlock;
+      }
+    }
+
+    size_t game_rom_idx = 0;
     for (Short i = 0x0000; i < 0x0100; i++) {
-      (*game_boot_rom)[i] = game_rom[i];
-      memory[i] = BOOT_ROM_DATA[i];
+      (*game_boot_rom)[i] = game_rom[game_rom_idx++];
+      f(i) = BOOT_ROM_DATA[i];
     }
-    for (Short i = 0x0100; i < 0x8000; i++) {
-      memory[i] = game_rom[i];
+    for (Short i = 0x0100; i < MEM_BLOCK_SIZE; i++) {
+      (*memory[0])[i] = game_rom[game_rom_idx++];
     }
-    return true;
+    for (size_t block_idx = 1; block_idx < rom_bank.size(); block_idx++) {
+      for (size_t addr = 0; addr < MEM_BLOCK_SIZE; addr++) {
+        rom_bank[block_idx][addr] = game_rom[game_rom_idx++];
+      }
+    }
+    this->hardware = hardware;
   }
 
 
   inline void replaceBootRom () {
     if (game_boot_rom.has_value()) {
       for (Short i = 0x0000; i < 0x0100; i++) {
-        memory[i] = (*game_boot_rom)[i];
+        f(i) = (*game_boot_rom)[i];
       }
       game_boot_rom = std::nullopt;
     }
@@ -172,30 +276,35 @@ public:
 
 
   // Fast read/write, no checks or banks
-  inline Byte& f(Short addr) {return memory[addr];}
+  inline const Byte& f(Short addr) const {return (*memory[addr/MEM_BLOCK_SIZE])[addr&MEM_BLOCK_MASK];}
+
+  inline Byte& f(Short addr) {return const_cast<Byte&>(std::as_const(*this).f(addr));}
 
 
   // Safe read
-  inline Byte r(Short addr) const {return memory[addr];}
+  inline Byte r(Short addr) const {return f(addr);}
 
 
   // Safe write
   inline void w(Short addr, Byte data) {
     // Prevent writing to ROM
     if (addr < 0x8000) {
+      changeMemoryBanks(addr, data);
       return;
     }
     // If write in locked video memory region do not write
     if (lcd_enabled and (
-        (not vram_w_enabled and addr >= 0x8000 and addr < 0xA000) or
+        (not vram_w_enabled and addr/MEM_BLOCK_SIZE == 4) or // VRAM is the 4th memory block
         (not oam_w_enabled  and addr >= 0xFE00 and addr < 0xFEA0))) {
       return;
     }
-    memory[addr] = data;
-    // Check write on RAM, if so write both on orig and mirror
-    if      (addr >= 0xC000 and addr < 0xDE00) {memory[addr-0xC000+0xE000] = data;}
-    else if (addr >= 0xE000 and addr < 0xFE00) {memory[addr-0xE000+0xC000] = data;}
-    else if (addr == Addr::LCDC) {lcd_enabled = ((data & 0x80) != 0);}
+    // Check write on external RAM (5th memory block)
+    else if (not ram_enabled and addr/MEM_BLOCK_SIZE == 5) {
+      return;
+    }
+
+    f(addr) = data;
+    if      (addr == Addr::LCDC) {lcd_enabled = ((data & 0x80) != 0);}
     else if (addr == Addr::BANK) {replaceBootRom();}
     else if (addr == Addr::DMA ) {performDMATransfer(data);}
     else if (addr >= 0xFF00) {special_addr_written[addr & 0xFF] = true;}
