@@ -95,16 +95,13 @@ inline Memory::CartHardware parseType(Byte val_addr_0147) {
     case 0x12: return Memory::CartHardware{.controller = Memory::CtrlType::MBC3, .ram = true};
     case 0x13: return Memory::CartHardware{.controller = Memory::CtrlType::MBC3, .ram = true, .battery = true};
     
-    case 0x15: return Memory::CartHardware{.controller = Memory::CtrlType::MBC4};
-    case 0x16: return Memory::CartHardware{.controller = Memory::CtrlType::MBC4, .ram = true};
-    case 0x17: return Memory::CartHardware{.controller = Memory::CtrlType::MBC4, .ram = true, .battery = true};
-    
     case 0x19: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5};
     case 0x1A: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5, .ram = true};
     case 0x1B: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5, .ram = true, .battery = true};
-    case 0x1C: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5};
-    case 0x1D: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5, .ram = true};
-    case 0x1E: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5, .ram = true, .battery = true};
+    // These implement RUMBLE, which is not implemented
+    // case 0x1C: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5};
+    // case 0x1D: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5, .ram = true};
+    // case 0x1E: return Memory::CartHardware{.controller = Memory::CtrlType::MBC5, .ram = true, .battery = true};
     
     case 0x20: return Memory::CartHardware{.controller = Memory::CtrlType::MBC6};
     

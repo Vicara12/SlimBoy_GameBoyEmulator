@@ -81,7 +81,7 @@ enum Addr : Short {
 class Memory {
 public:
 
-  enum class CtrlType {None, MBC1, MBC2, MBC3, MBC4, MBC5, MBC6, MBC7, MMM01, HuC1, HuC3};
+  enum class CtrlType {None, MBC1, MBC2, MBC3, MBC5, MBC6, MBC7, MMM01, HuC1, HuC3};
 
   struct CartHardware {
     Memory::CtrlType controller;
@@ -98,7 +98,6 @@ public:
       case CtrlType::MBC1:  return "MBC1";
       case CtrlType::MBC2:  return "MBC2";
       case CtrlType::MBC3:  return "MBC3";
-      case CtrlType::MBC4:  return "MBC4";
       case CtrlType::MBC5:  return "MBC5";
       case CtrlType::MBC6:  return "MBC6";
       case CtrlType::MBC7:  return "MBC7";
