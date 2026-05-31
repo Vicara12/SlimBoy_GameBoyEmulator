@@ -35,6 +35,9 @@ void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorCon
       state->memory.replaceBootRom();
     }
     execute<InterfaceT, debug>(*state, interface);
+    if (cart_info.hardware.battery) {
+      interface.saveRAM(state->memory.copyRAM());
+    }
     delete state;
     interface.informEmulationEnded();
   } catch (const std::exception &e) {

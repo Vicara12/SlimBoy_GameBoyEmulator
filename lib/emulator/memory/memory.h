@@ -274,6 +274,18 @@ public:
   }
 
 
+  inline std::vector<Byte> copyRAM () const {
+    std::vector<Byte> ram_copy(8 * 1024 * hardware.n_ram_banks);
+    size_t copy_idx = 0;
+    for (size_t bank = 0; bank < hardware.n_ram_banks; bank++) {
+      for (size_t idx = 0; idx < MEM_BLOCK_SIZE; idx++) {
+        ram_copy[copy_idx++] = ram_bank[bank][idx];
+      }
+    }
+    return ram_copy;
+  }
+
+
   // Fast read/write, no checks or banks
   inline const Byte& f(Short addr) const {return (*memory[addr/MEM_BLOCK_SIZE])[addr&MEM_BLOCK_MASK];}
 
