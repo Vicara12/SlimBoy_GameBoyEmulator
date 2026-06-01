@@ -3,6 +3,8 @@
 #include "state.h"
 #include "interrupts.h"
 
+inline constexpr ulong EMU_SYNCH_FREQ = 128;
+inline constexpr ulong EMU_SYNCH_CYCLES = CLOCK_FREQ / EMU_SYNCH_FREQ;
 
 
 inline void updateTimeRegisters (State &state) {
@@ -34,6 +36,10 @@ inline void updateTimeRegisters (State &state) {
 
 template<class InterfaceT>
 inline void synchExecution (State &state, InterfaceT &interface) {
+  if (state.cycles < state.timing.cycles_next_synch) {
+    return;
+  }
+  state.timing.cycles_next_synch += EMU_SYNCH_CYCLES;
   ulong t_now = interface.realTimeMicros();
   ulong delta_t = t_now - state.timing.t_last_synch;
   float delta_emu_t = float(state.cycles - state.timing.cycles_last_synch)/CLOCK_FREQ*1e6;
