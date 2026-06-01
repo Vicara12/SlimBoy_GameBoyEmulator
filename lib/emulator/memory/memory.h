@@ -75,8 +75,6 @@ enum Addr : Short {
 };
 
 
-// TODO support unmapped RAM bank access
-
 
 class Memory {
 public:
@@ -328,11 +326,13 @@ public:
     }
 
     f(addr) = data;
-    if      (addr == Addr::LCDC) {lcd_enabled = ((data & 0x80) != 0);}
-    else if (addr == Addr::BANK) {replaceBootRom();}
-    else if (addr == Addr::DMA ) {performDMATransfer(data);}
-    else if (addr >= 0xFF00) {special_addr_written[addr & 0xFF] = true;}
-    // TODO optimize with a switch
+    if (addr >= 0xFF00) {
+      special_addr_written[addr & 0xFF] = true;
+      if      (addr == Addr::LCDC) {lcd_enabled = ((data & 0x80) != 0);}
+      else if (addr == Addr::BANK) {replaceBootRom();}
+      else if (addr == Addr::DMA ) {performDMATransfer(data);}
+
+    }
   }
 
   inline bool specialAddrWritten (Short addr) {

@@ -17,7 +17,7 @@ public:
 
   inline ulong realTimeMicros () {return micros();}
 
-  inline void playAudio (AudioPacket&& ap) {}
+  inline void playAudio (const AudioPacket &ap) {}
 
   inline void informEmuRate (float r) {Serial.println(r);};
 };

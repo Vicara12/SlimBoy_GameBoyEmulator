@@ -41,6 +41,7 @@ void execute (State &state, InterfaceT &interface) {
       updateButtons(n_instrs, state, interface);
       if (state.stopped) {
         interface.sleepMillis(10);
+        state.timing.cycles_last_DIV = state.cycles;
       }
     } while (state.stopped and not state.end_emulation);
     updateGraphics(state, interface);

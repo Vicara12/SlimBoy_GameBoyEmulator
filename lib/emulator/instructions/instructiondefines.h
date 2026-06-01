@@ -13,7 +13,7 @@ enum class Flag : Byte {
 
 template<Flag flag>
 inline bool getFlag (State &state) {
-  return (state.F & static_cast<Byte>(flag)) != 0;
+  return state.F & static_cast<Byte>(flag);
 }
 
 inline void clearAllFlags (State &state) {

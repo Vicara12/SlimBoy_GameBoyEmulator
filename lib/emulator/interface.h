@@ -50,7 +50,7 @@ public:
   inline ulong realTimeMicros () {return impl().realTimeMicros();}
 
   // IMPLEMENT: Called every 32 times a second, receives as argument the left and right audio buffers, respectively
-  inline void playAudio (AudioPacket&& ap) {impl().playAudio(std::move(ap));}
+  inline void playAudio (const AudioPacket &ap) {impl().playAudio(ap);}
 
   inline ScreenPixels* updateScreen () {
     std::lock_guard<std::mutex> lock(screen_mutex);

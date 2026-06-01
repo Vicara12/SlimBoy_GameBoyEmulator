@@ -569,11 +569,11 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x02:
     return instr_LD_mem_r1_nn(REG_BC(state), state.A, state, false, false);
   case 0x03:
-    return instr_INC_DEC_nn_16bits(state.B, state.C, false);
+    return instr_INC_DEC_nn_16bits<false>(state.B, state.C);
   case 0x04:
-    return instr_INC_DEC_r(state.B, state, false);
+    return instr_INC_DEC_r<false>(state.B, state);
   case 0x05:
-    return instr_INC_DEC_r(state.B, state, true);
+    return instr_INC_DEC_r<true>(state.B, state);
   case 0x06:
     return instr_LD_nn_n(state.B, data0);
   case 0x07:
@@ -585,11 +585,11 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x0A:
     return instr_LD_r1_mem_nn(state.A, REG_BC(state), state, false);
   case 0x0B:
-    return instr_INC_DEC_nn_16bits(state.B, state.C, true);
+    return instr_INC_DEC_nn_16bits<true>(state.B, state.C);
   case 0x0C:
-    return instr_INC_DEC_r(state.C, state, false);
+    return instr_INC_DEC_r<false>(state.C, state);
   case 0x0D:
-    return instr_INC_DEC_r(state.C, state, true);
+    return instr_INC_DEC_r<true>(state.C, state);
   case 0x0E:
     return instr_LD_nn_n(state.C, data0);
   case 0x0F:
@@ -601,11 +601,11 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x12:
     return instr_LD_mem_r1_nn(REG_DE(state), state.A, state, false, false);
   case 0x13:
-    return instr_INC_DEC_nn_16bits(state.D, state.E, false);
+    return instr_INC_DEC_nn_16bits<false>(state.D, state.E);
   case 0x14:
-    return instr_INC_DEC_r(state.D, state, false);
+    return instr_INC_DEC_r<false>(state.D, state);
   case 0x15:
-    return instr_INC_DEC_r(state.D, state, true);
+    return instr_INC_DEC_r<true>(state.D, state);
   case 0x16:
     return instr_LD_nn_n(state.D, data0);
   case 0x17:
@@ -617,11 +617,11 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x1A:
     return instr_LD_r1_mem_nn(state.A, REG_DE(state), state, false);
   case 0x1B:
-    return instr_INC_DEC_nn_16bits(state.D, state.E, true);
+    return instr_INC_DEC_nn_16bits<true>(state.D, state.E);
   case 0x1C:
-    return instr_INC_DEC_r(state.E, state, false);
+    return instr_INC_DEC_r<false>(state.E, state);
   case 0x1D:
-    return instr_INC_DEC_r(state.E, state, true);
+    return instr_INC_DEC_r<true>(state.E, state);
   case 0x1E:
     return instr_LD_nn_n(state.E, data0);
   case 0x1F:
@@ -633,11 +633,11 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x22:
     return instr_LDX_A_mem_HL(state, true, true);
   case 0x23:
-    return instr_INC_DEC_nn_16bits(state.H, state.L, false);
+    return instr_INC_DEC_nn_16bits<false>(state.H, state.L);
   case 0x24:
-    return instr_INC_DEC_r(state.H, state, false);
+    return instr_INC_DEC_r<false>(state.H, state);
   case 0x25:
-    return instr_INC_DEC_r(state.H, state, true);
+    return instr_INC_DEC_r<true>(state.H, state);
   case 0x26:
     return instr_LD_nn_n(state.H, data0);
   case 0x27:
@@ -649,11 +649,11 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x2A:
     return instr_LDX_A_mem_HL(state, false, true);
   case 0x2B:
-    return instr_INC_DEC_nn_16bits(state.H, state.L, true);
+    return instr_INC_DEC_nn_16bits<true>(state.H, state.L);
   case 0x2C:
-    return instr_INC_DEC_r(state.L, state, false);
+    return instr_INC_DEC_r<false>(state.L, state);
   case 0x2D:
-    return instr_INC_DEC_r(state.L, state, true);
+    return instr_INC_DEC_r<true>(state.L, state);
   case 0x2E:
     return instr_LD_nn_n(state.L, data0);
   case 0x2F:
@@ -665,11 +665,11 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x32:
     return instr_LDX_A_mem_HL(state, true, false);
   case 0x33:
-    return instr_INC_DEC_SP(state, false);
+    return instr_INC_DEC_SP<false>(state);
   case 0x34:
-    return instr_INC_DEC_mem_HL(state, false);
+    return instr_INC_DEC_mem_HL<false>(state);
   case 0x35:
-    return instr_INC_DEC_mem_HL(state, true);
+    return instr_INC_DEC_mem_HL<true>(state);
   case 0x36:
     return instr_LD_mem_r1_nn(REG_HL(state), data0, state, true, false);
   case 0x37:
@@ -681,11 +681,11 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x3A:
     return instr_LDX_A_mem_HL(state, false, false);
   case 0x3B:
-    return instr_INC_DEC_SP(state, true);
+    return instr_INC_DEC_SP<true>(state);
   case 0x3C:
-    return instr_INC_DEC_r(state.A, state, false);
+    return instr_INC_DEC_r<false>(state.A, state);
   case 0x3D:
-    return instr_INC_DEC_r(state.A, state, true);
+    return instr_INC_DEC_r<true>(state.A, state);
   case 0x3E:
     return instr_LD_nn_n(state.A, data0);
   case 0x3F:
@@ -819,133 +819,133 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0x7F:
     return instr_LD_r1_r2(state.A, state.A);
   case 0x80:
-    return instr_ADX_A_r(state.B, state, false, false);
+    return instr_ADX_A_r<false,false>(state.B, state);
   case 0x81:
-    return instr_ADX_A_r(state.C, state, false, false);
+    return instr_ADX_A_r<false,false>(state.C, state);
   case 0x82:
-    return instr_ADX_A_r(state.D, state, false, false);
+    return instr_ADX_A_r<false,false>(state.D, state);
   case 0x83:
-    return instr_ADX_A_r(state.E, state, false, false);
+    return instr_ADX_A_r<false,false>(state.E, state);
   case 0x84:
-    return instr_ADX_A_r(state.H, state, false, false);
+    return instr_ADX_A_r<false,false>(state.H, state);
   case 0x85:
-    return instr_ADX_A_r(state.L, state, false, false);
+    return instr_ADX_A_r<false,false>(state.L, state);
   case 0x86:
-    return instr_ADX_A_mem_HL(state, false);
+    return instr_ADX_A_mem_HL<false>(state);
   case 0x87:
-    return instr_ADX_A_r(state.A, state, false, false);
+    return instr_ADX_A_r<false,false>(state.A, state);
   case 0x88:
-    return instr_ADX_A_r(state.B, state, false, true);
+    return instr_ADX_A_r<false,true>(state.B, state);
   case 0x89:
-    return instr_ADX_A_r(state.C, state, false, true);
+    return instr_ADX_A_r<false,true>(state.C, state);
   case 0x8A:
-    return instr_ADX_A_r(state.D, state, false, true);
+    return instr_ADX_A_r<false,true>(state.D, state);
   case 0x8B:
-    return instr_ADX_A_r(state.E, state, false, true);
+    return instr_ADX_A_r<false,true>(state.E, state);
   case 0x8C:
-    return instr_ADX_A_r(state.H, state, false, true);
+    return instr_ADX_A_r<false,true>(state.H, state);
   case 0x8D:
-    return instr_ADX_A_r(state.L, state, false, true);
+    return instr_ADX_A_r<false,true>(state.L, state);
   case 0x8E:
-    return instr_ADX_A_mem_HL(state, true);
+    return instr_ADX_A_mem_HL<true>(state);
   case 0x8F:
-    return instr_ADX_A_r(state.A, state, false, true);
+    return instr_ADX_A_r<false,true>(state.A, state);
   case 0x90:
-    return instr_SBX_A_r(state.B, state, false, false);
+    return instr_SBX_A_r<false,false>(state.B, state);
   case 0x91:
-    return instr_SBX_A_r(state.C, state, false, false);
+    return instr_SBX_A_r<false,false>(state.C, state);
   case 0x92:
-    return instr_SBX_A_r(state.D, state, false, false);
+    return instr_SBX_A_r<false,false>(state.D, state);
   case 0x93:
-    return instr_SBX_A_r(state.E, state, false, false);
+    return instr_SBX_A_r<false,false>(state.E, state);
   case 0x94:
-    return instr_SBX_A_r(state.H, state, false, false);
+    return instr_SBX_A_r<false,false>(state.H, state);
   case 0x95:
-    return instr_SBX_A_r(state.L, state, false, false);
+    return instr_SBX_A_r<false,false>(state.L, state);
   case 0x96:
-    return instr_SBX_A_mem_HL(state, false);
+    return instr_SBX_A_mem_HL<false>(state);
   case 0x97:
-    return instr_SBX_A_r(state.A, state, false, false);
+    return instr_SBX_A_r<false,false>(state.A, state);
   case 0x98:
-    return instr_SBX_A_r(state.B, state, false, true);
+    return instr_SBX_A_r<false,true>(state.B, state);
   case 0x99:
-    return instr_SBX_A_r(state.C, state, false, true);
+    return instr_SBX_A_r<false,true>(state.C, state);
   case 0x9A:
-    return instr_SBX_A_r(state.D, state, false, true);
+    return instr_SBX_A_r<false,true>(state.D, state);
   case 0x9B:
-    return instr_SBX_A_r(state.E, state, false, true);
+    return instr_SBX_A_r<false,true>(state.E, state);
   case 0x9C:
-    return instr_SBX_A_r(state.H, state, false, true);
+    return instr_SBX_A_r<false,true>(state.H, state);
   case 0x9D:
-    return instr_SBX_A_r(state.L, state, false, true);
+    return instr_SBX_A_r<false,true>(state.L, state);
   case 0x9E:
-    return instr_SBX_A_mem_HL(state, true);
+    return instr_SBX_A_mem_HL<true>(state);
   case 0x9F:
-    return instr_SBX_A_r(state.A, state, false, true);
+    return instr_SBX_A_r<false,true>(state.A, state);
   case 0xA0:
-    return instr_AND_OR_XOR_A_r(state.B, state, false, false, 0);
+    return instr_AND_OR_XOR_A_r<false,false,0>(state.B, state);
   case 0xA1:
-    return instr_AND_OR_XOR_A_r(state.C, state, false, false, 0);
+    return instr_AND_OR_XOR_A_r<false,false,0>(state.C, state);
   case 0xA2:
-    return instr_AND_OR_XOR_A_r(state.D, state, false, false, 0);
+    return instr_AND_OR_XOR_A_r<false,false,0>(state.D, state);
   case 0xA3:
-    return instr_AND_OR_XOR_A_r(state.E, state, false, false, 0);
+    return instr_AND_OR_XOR_A_r<false,false,0>(state.E, state);
   case 0xA4:
-    return instr_AND_OR_XOR_A_r(state.H, state, false, false, 0);
+    return instr_AND_OR_XOR_A_r<false,false,0>(state.H, state);
   case 0xA5:
-    return instr_AND_OR_XOR_A_r(state.L, state, false, false, 0);
+    return instr_AND_OR_XOR_A_r<false,false,0>(state.L, state);
   case 0xA6:
-    return instr_AND_OR_XOR_A_r(       0, state, false, true, 0);
+    return instr_AND_OR_XOR_A_r<false,true,0>(       0, state);
   case 0xA7:
-    return instr_AND_OR_XOR_A_r(state.A, state, false, false, 0);
+    return instr_AND_OR_XOR_A_r<false,false,0>(state.A, state);
   case 0xA8:
-    return instr_AND_OR_XOR_A_r(state.B, state, false, false, 2);
+    return instr_AND_OR_XOR_A_r<false,false,2>(state.B, state);
   case 0xA9:
-    return instr_AND_OR_XOR_A_r(state.C, state, false, false, 2);
+    return instr_AND_OR_XOR_A_r<false,false,2>(state.C, state);
   case 0xAA:
-    return instr_AND_OR_XOR_A_r(state.D, state, false, false, 2);
+    return instr_AND_OR_XOR_A_r<false,false,2>(state.D, state);
   case 0xAB:
-    return instr_AND_OR_XOR_A_r(state.E, state, false, false, 2);
+    return instr_AND_OR_XOR_A_r<false,false,2>(state.E, state);
   case 0xAC:
-    return instr_AND_OR_XOR_A_r(state.H, state, false, false, 2);
+    return instr_AND_OR_XOR_A_r<false,false,2>(state.H, state);
   case 0xAD:
-    return instr_AND_OR_XOR_A_r(state.L, state, false, false, 2);
+    return instr_AND_OR_XOR_A_r<false,false,2>(state.L, state);
   case 0xAE:
-    return instr_AND_OR_XOR_A_r(       0, state, false, true, 2);
+    return instr_AND_OR_XOR_A_r<false,true,2>(       0, state);
   case 0xAF:
-    return instr_AND_OR_XOR_A_r(state.A, state, false, false, 2);
+    return instr_AND_OR_XOR_A_r<false,false,2>(state.A, state);
   case 0xB0:
-    return instr_AND_OR_XOR_A_r(state.B, state, false, false, 1);
+    return instr_AND_OR_XOR_A_r<false,false,1>(state.B, state);
   case 0xB1:
-    return instr_AND_OR_XOR_A_r(state.C, state, false, false, 1);
+    return instr_AND_OR_XOR_A_r<false,false,1>(state.C, state);
   case 0xB2:
-    return instr_AND_OR_XOR_A_r(state.D, state, false, false, 1);
+    return instr_AND_OR_XOR_A_r<false,false,1>(state.D, state);
   case 0xB3:
-    return instr_AND_OR_XOR_A_r(state.E, state, false, false, 1);
+    return instr_AND_OR_XOR_A_r<false,false,1>(state.E, state);
   case 0xB4:
-    return instr_AND_OR_XOR_A_r(state.H, state, false, false, 1);
+    return instr_AND_OR_XOR_A_r<false,false,1>(state.H, state);
   case 0xB5:
-    return instr_AND_OR_XOR_A_r(state.L, state, false, false, 1);
+    return instr_AND_OR_XOR_A_r<false,false,1>(state.L, state);
   case 0xB6:
-    return instr_AND_OR_XOR_A_r(       0, state, false, true, 1);
+    return instr_AND_OR_XOR_A_r<false,true,1>(       0, state);
   case 0xB7:
-    return instr_AND_OR_XOR_A_r(state.A, state, false, false, 1);
+    return instr_AND_OR_XOR_A_r<false,false,1>(state.A, state);
   case 0xB8:
-    return instr_CP_r(state.B, state, false, false);
+    return instr_CP_r<false,false>(state.B, state);
   case 0xB9:
-    return instr_CP_r(state.C, state, false, false);
+    return instr_CP_r<false,false>(state.C, state);
   case 0xBA:
-    return instr_CP_r(state.D, state, false, false);
+    return instr_CP_r<false,false>(state.D, state);
   case 0xBB:
-    return instr_CP_r(state.E, state, false, false);
+    return instr_CP_r<false,false>(state.E, state);
   case 0xBC:
-    return instr_CP_r(state.H, state, false, false);
+    return instr_CP_r<false,false>(state.H, state);
   case 0xBD:
-    return instr_CP_r(state.L, state, false, false);
+    return instr_CP_r<false,false>(state.L, state);
   case 0xBE:
-    return instr_CP_r(       0, state, false, true);
+    return instr_CP_r<false,true>(       0, state);
   case 0xBF:
-    return instr_CP_r(state.A, state, false, false);
+    return instr_CP_r<false,false>(state.A, state);
   case 0xC0:
     return instr_RET_cc<Flag::ZERO>(false, state);
   case 0xC1:
@@ -959,7 +959,7 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0xC5:
     return instr_PUSH_nn(state.B, state.C, state);
   case 0xC6:
-    return instr_ADX_A_r(data0, state, true, false);
+    return instr_ADX_A_r<true,false>(data0, state);
   case 0xC7:
     return instr_RST_n(0x00, state);
   case 0xC8:
@@ -975,7 +975,7 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0xCD:
     return instr_CALL_nn(data0, data1, state);
   case 0xCE:
-    return instr_ADX_A_r(data0, state, true, true);
+    return instr_ADX_A_r<true,true>(data0, state);
   case 0xCF:
     return instr_RST_n(0x08, state);
   case 0xD0:
@@ -991,7 +991,7 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0xD5:
     return instr_PUSH_nn(state.D, state.E, state);
   case 0xD6:
-    return instr_SBX_A_r(data0, state, true, false);
+    return instr_SBX_A_r<true,false>(data0, state);
   case 0xD7:
     return instr_RST_n(0x10, state);
   case 0xD8:
@@ -1007,7 +1007,7 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0xDD:
     return -1;
   case 0xDE:
-    return instr_SBX_A_r(data0, state, true, true);
+    return instr_SBX_A_r<true,true>(data0, state);
   case 0xDF:
     return instr_RST_n(0x18, state);
   case 0xE0:
@@ -1023,7 +1023,7 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0xE5:
     return instr_PUSH_nn(state.H, state.L, state);
   case 0xE6:
-    return instr_AND_OR_XOR_A_r(data0, state, true, false, 0);
+    return instr_AND_OR_XOR_A_r<true,false,0>(data0, state);
   case 0xE7:
     return instr_RST_n(0x20, state);
   case 0xE8:
@@ -1039,7 +1039,7 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0xED:
     return -1;
   case 0xEE:
-    return instr_AND_OR_XOR_A_r(data0, state, true, false, 2);
+    return instr_AND_OR_XOR_A_r<true,false,2>(data0, state);
   case 0xEF:
     return instr_RST_n(0x28, state);
   case 0xF0:
@@ -1058,7 +1058,7 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0xF5:
     return instr_PUSH_nn(state.A, state.F, state);
   case 0xF6:
-    return instr_AND_OR_XOR_A_r(data0, state, true, false, 1);
+    return instr_AND_OR_XOR_A_r<true,false,1>(data0, state);
   case 0xF7:
     return instr_RST_n(0x30, state);
   case 0xF8:
@@ -1074,7 +1074,7 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
   case 0xFD:
     return -1;
   case 0xFE:
-    return instr_CP_r(data0, state, true, false);
+    return instr_CP_r<true,false>(data0, state);
   case 0xFF:
     return instr_RST_n(0x38, state);
   default:

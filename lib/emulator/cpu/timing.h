@@ -15,7 +15,6 @@ inline void updateTimeRegisters (State &state) {
     state.timing.cycles_div_TIMA = getDivFromTAC(tac_val);
   }
   state.memory.f(Addr::DIV) = (state.cycles - state.timing.cycles_last_DIV)/256;
-  // TODO: reset this register when the STOP mode ends
   if (state.timing.enable_TIMA) {
     Byte &tima_val = state.memory.f(Addr::TIMA);
     Byte &tma_val = state.memory.f(Addr::TMA);

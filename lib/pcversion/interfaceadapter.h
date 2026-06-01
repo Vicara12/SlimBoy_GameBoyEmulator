@@ -36,7 +36,7 @@ public:
     ).count();
   };
   
-  inline void playAudio (AudioPacket&& ap) {audio_stream.pushSamples(std::move(ap));};
+  inline void playAudio (const AudioPacket &ap) {audio_stream.pushSamples(ap);};
 
   auto& getAudioStream () {return audio_stream;}
 };
