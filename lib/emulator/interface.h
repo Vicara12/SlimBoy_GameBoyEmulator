@@ -21,7 +21,7 @@ template<class Derived>
 class HardwareInterface {
   std::mutex screen_mutex;
   std::array<ScreenPixels*, 3> screen_frames;
-  std::optional<std::vector<Byte>> ram_copy;
+  std::unique_ptr<std::vector<Byte>> ram_copy;
   float emu_rate = 1.f;
   Byte buttons = 0x00;
   bool end_emulation = false;
@@ -67,7 +67,7 @@ public:
 
   inline Byte readButtons () {return buttons;}
 
-  inline void saveRAM (std::vector<Byte> &&ram) {ram_copy = std::move(ram);}
+  inline void saveRAM (std::unique_ptr<std::vector<Byte>> ram) {ram_copy = std::move(ram);}
 
 
   // PLATFORM SIDE FUNCTIONS
@@ -95,7 +95,7 @@ public:
   // Updated every 0.5s; provides the ratio t_emulation/t_real
   float emuRate () const {return emu_rate;};
 
-  std::optional<std::vector<Byte>> getRAM () const {return ram_copy;}
+  std::unique_ptr<std::vector<Byte>> getRAM () const {return std::move(ram_copy);}
 
 protected:
 

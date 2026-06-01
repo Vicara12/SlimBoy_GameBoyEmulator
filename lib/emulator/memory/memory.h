@@ -139,8 +139,8 @@ private:
   std::array<MemBlock*,NUM_MEM_BLOCKS> memory;
   std::optional<std::array<Byte,0x0100>> game_boot_rom;
   std::array<bool,0x0100> special_addr_written = {false};
-  std::vector<MemBlock> rom_bank;
-  std::vector<MemBlock> ram_bank;
+  std::vector<MemBlock*> rom_bank;
+  std::vector<MemBlock*> ram_bank;
   Byte rom_bank_idx_low = 1; // Lower 5 bits of rom bank
   Byte rom_ram_bank_idx = 0; // Upper 2 bits of rom bank or ram bank idx
   bool ram_mode_select = false;
@@ -148,6 +148,7 @@ private:
   bool vram_w_enabled = false;
   bool oam_w_enabled = false;
   bool lcd_enabled = false;
+  bool initialized = false;
   CartHardware hardware;
 
 
@@ -195,25 +196,38 @@ private:
     }
     
     // Hook low ROM bank
-    memory[0] = &rom_bank[2*first_rom_bank_idx];
-    memory[1] = &rom_bank[2*first_rom_bank_idx + 1];
+    memory[0] = rom_bank[2*first_rom_bank_idx];
+    memory[1] = rom_bank[2*first_rom_bank_idx + 1];
     // Hook high ROM bank
-    memory[2] = &rom_bank[2*second_rom_bank_idx];
-    memory[3] = &rom_bank[2*second_rom_bank_idx + 1];
+    memory[2] = rom_bank[2*second_rom_bank_idx];
+    memory[3] = rom_bank[2*second_rom_bank_idx + 1];
     // Hook RAM bank
-    memory[Addr::ExtRAM/MEM_BLOCK_SIZE] = &ram_bank[ram_bank_idx];
+    memory[Addr::ExtRAM/MEM_BLOCK_SIZE] = ram_bank[ram_bank_idx];
+  }
+
+
+  inline void initBlockVec (std::vector<MemBlock*> &v, size_t n_elms) {
+    v.resize(n_elms);
+    for (size_t i = 0; i < n_elms; i++) {
+      v[i] = new MemBlock;
+    }
   }
 
 
 public:
 
   inline ~Memory () {
-    for (size_t idx = 4; idx < NUM_MEM_BLOCKS; idx++) {
-      if (idx != Addr::ExtRAM/MEM_BLOCK_SIZE) {
-        delete memory[idx];
+    if (initialized) {
+      for (size_t idx = 4; idx < NUM_MEM_BLOCKS; idx++) {
+        if (idx != Addr::ExtRAM/MEM_BLOCK_SIZE) {
+          delete memory[idx];
+        }
       }
+      for (auto ptr : rom_bank) delete ptr;
+      for (auto ptr : ram_bank) delete ptr;
     }
   }
+
 
   inline void initialize (const std::vector<Byte> &game_rom, const CartHardware &hardware) {
     if (
@@ -226,18 +240,18 @@ public:
     }
 
     game_boot_rom = std::array<Byte,0x0100>();
-    rom_bank.resize(2*hardware.n_rom_banks); // A ROM bank is 16kb, but a memory block is 8kb
-    ram_bank.resize(std::max(hardware.n_ram_banks,1));
+    // Need to use pointers because otherwise it creates a temporal object which overflows the stack
+    initBlockVec(rom_bank, 2*hardware.n_rom_banks); // A ROM bank is 16kb, but a memory block is 8kb
+    initBlockVec(ram_bank, std::max(hardware.n_ram_banks,1));
 
     // ROM bank 0
-    memory[0] = &rom_bank[0];
-    memory[1] = &rom_bank[1];
+    memory[0] = rom_bank[0];
+    memory[1] = rom_bank[1];
     // R0M bank 1
-    memory[2] = &rom_bank[2];
-    memory[3] = &rom_bank[3];
-
+    memory[2] = rom_bank[2];
+    memory[3] = rom_bank[3];
     // External RAM
-    memory[Addr::ExtRAM/MEM_BLOCK_SIZE] = &ram_bank[0];
+    memory[Addr::ExtRAM/MEM_BLOCK_SIZE] = ram_bank[0];
 
     for (size_t idx = 4; idx < NUM_MEM_BLOCKS; idx++) {
       if (idx != Addr::ExtRAM/MEM_BLOCK_SIZE) {
@@ -255,10 +269,11 @@ public:
     }
     for (size_t block_idx = 1; block_idx < rom_bank.size(); block_idx++) {
       for (size_t addr = 0; addr < MEM_BLOCK_SIZE; addr++) {
-        rom_bank[block_idx][addr] = game_rom[game_rom_idx++];
+        (*rom_bank[block_idx])[addr] = game_rom[game_rom_idx++];
       }
     }
     this->hardware = hardware;
+    initialized = true;
   }
 
 
@@ -272,12 +287,12 @@ public:
   }
 
 
-  inline std::vector<Byte> copyRAM () const {
-    std::vector<Byte> ram_copy(8 * 1024 * hardware.n_ram_banks);
+  inline std::unique_ptr<std::vector<Byte>> copyRAM () const {
+    auto ram_copy = std::make_unique<std::vector<Byte>>(8 * 1024 * hardware.n_ram_banks);
     size_t copy_idx = 0;
     for (size_t bank = 0; bank < hardware.n_ram_banks; bank++) {
       for (size_t idx = 0; idx < MEM_BLOCK_SIZE; idx++) {
-        ram_copy[copy_idx++] = ram_bank[bank][idx];
+        (*ram_copy)[copy_idx++] = (*ram_bank[bank])[idx];
       }
     }
     return ram_copy;

@@ -7,9 +7,9 @@
 class ESP32Interface : public HardwareInterface<ESP32Interface> {
 public:
 
-  inline void print (const std::string_view &s) {}
+  inline void print (const std::string_view &s) {Serial.print(s.data());}
 
-  inline void println (const std::string_view &s) {}
+  inline void println (const std::string_view &s) {Serial.println(s.data());}
 
   inline std::string userLineInput () {return "";}
 
