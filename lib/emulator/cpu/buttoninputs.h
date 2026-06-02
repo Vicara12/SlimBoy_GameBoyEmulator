@@ -18,8 +18,10 @@ enum class Button : Byte {
 
 
 template<class InterfaceT>
-inline void updateButtons (ulong n_instrs, State &state, InterfaceT &interface)
-{
+inline void updateButtons (ulong n_instrs, State &state, InterfaceT &interface) {
+  if (not (state.memory.specialAddrWritten(Addr::P1) or state.stopped)) {
+    return;
+  }
   Byte &p1_reg = state.memory.f(Addr::P1);
   Byte old_p1_reg = p1_reg;
   Byte button_inputs = interface.readButtons();
