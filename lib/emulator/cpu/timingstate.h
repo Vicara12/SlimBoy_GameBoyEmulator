@@ -12,9 +12,10 @@ inline ulong getDivFromTAC (Byte value_TAC) {
 
 
 struct Timing {
-  ulong cycles_last_DIV = 0;  // Counts the execution cycles of the last write to DIV
-  ulong cycles_last_TIMA = 0; // Cycles of last TIMA overflow
+  ulong cycles_next_DIV_inc = 0;
+  ulong cycles_next_TIMA_inc = 0;
   ulong cycles_div_TIMA = getDivFromTAC(0);
+  bool load_tma = false;
   bool enable_TIMA = false;
   ulong t_last_synch = 0;
   ulong cycles_last_synch = 0;

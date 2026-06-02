@@ -1,3 +1,6 @@
+
+#define PROFILE // TODO remove
+
 #include <Arduino.h>
 #include <vector>
 #include "SPIFFS.h"
@@ -13,6 +16,7 @@ auto emu_cfg = EmulatorConfig{
 };
 const std::string game_path_ = "/Tetris.gb";
 // const std::string game_path_ = "/Dr_Mario.gb";
+// const std::string game_path_ = "/Zelda.gb";
 
 
 // void launchEmulator () {

@@ -35,9 +35,13 @@ inline void updateButtons (ulong n_instrs, State &state, InterfaceT &interface)
   // Button pressed means LOW (0) and vice versa
   p1_reg = (old_p1_reg & 0x30) | (~input);
 
+  // Pressing any button means exiting stop state
+  if (button_inputs != 0) {
+    state.stopped = false;
+  }
+
   // If any change in button pressed activate interrupt and exit stop state (if in it)
   if (((old_p1_reg ^ p1_reg) & 0x0F) != 0) {
     setInterrupt<Interrupt::JOYPAD>(state);
-    state.stopped = false;
   }
 }

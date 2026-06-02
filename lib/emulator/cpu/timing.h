@@ -8,27 +8,37 @@ inline constexpr ulong EMU_SYNCH_CYCLES = CLOCK_FREQ / EMU_SYNCH_FREQ;
 
 
 inline void updateTimeRegisters (State &state) {
+  Byte &div = state.memory.f(Addr::DIV);
   if (state.memory.specialAddrWritten(Addr::DIV)) {
-    state.timing.cycles_last_DIV = state.cycles;
+    state.timing.cycles_next_DIV_inc = state.cycles + 256;
+    div = 0;
   }
+  else {
+    while (state.timing.cycles_next_DIV_inc < state.cycles) {
+      state.timing.cycles_next_DIV_inc += 256;
+      div++;
+    }
+  }
+
   if (state.memory.specialAddrWritten(Addr::TAC)) {
-    Byte tac_val = state.memory.f(Addr::TAC);
+    const Byte tac_val = state.memory.f(Addr::TAC);
     state.timing.enable_TIMA = (tac_val & 0x04);
     state.timing.cycles_div_TIMA = getDivFromTAC(tac_val);
+    state.timing.cycles_next_TIMA_inc = state.cycles;
   }
-  state.memory.f(Addr::DIV) = (state.cycles - state.timing.cycles_last_DIV)/256;
   if (state.timing.enable_TIMA) {
-    Byte &tima_val = state.memory.f(Addr::TIMA);
-    Byte &tma_val = state.memory.f(Addr::TMA);
-    Byte old_TIMA = tima_val;
-    ulong t_value_TIMA = (state.cycles - state.timing.cycles_last_TIMA)/state.timing.cycles_div_TIMA;
-    tima_val = t_value_TIMA + tma_val;
-    // Detect TIMA overflow
-    if (old_TIMA > tima_val) {
-      // Account for overflowed cycles
-      state.timing.cycles_last_TIMA = state.cycles - tima_val*state.timing.cycles_div_TIMA;
-      tima_val += tma_val;
-      setInterrupt<Interrupt::TIMER>(state);
+    Byte &tima = state.memory.f(Addr::TIMA);
+    const Byte tma = state.memory.f(Addr::TMA);
+    while (state.timing.cycles_next_TIMA_inc < state.cycles) {
+      tima = (state.timing.load_tma ? tma : tima + 1);
+      if (tima == 0 and not state.timing.load_tma) {
+        state.timing.cycles_next_TIMA_inc += 4;
+        state.timing.load_tma = true;
+        setInterrupt<Interrupt::TIMER>(state);
+      } else {
+        state.timing.cycles_next_TIMA_inc += state.timing.cycles_div_TIMA;
+        state.timing.load_tma = false;
+      }
     }
   }
 }
