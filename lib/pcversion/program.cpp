@@ -35,16 +35,15 @@ bool readRom (const std::string &path, GameRom &game_rom) {
 
 void drawScreen (sf::RenderWindow &window, PCInterface &interface) {
   ScreenPixels *px_intensity = interface.getLatestScreen();
-  std::array<float,3> base_color = {255, 255, 255};
   int px_size = window.getSize().x/SCREEN_PX_W;
 
   window.clear();
   for (int i = 0; i < SCREEN_PX_H; i++) {
     for (int j = 0; j < SCREEN_PX_W; j++) {
       sf::RectangleShape square(sf::Vector2f(px_size, px_size));
-      square.setFillColor(sf::Color((*px_intensity)[i].pixel[j]*base_color[0],
-                                    (*px_intensity)[i].pixel[j]*base_color[1],
-                                    (*px_intensity)[i].pixel[j]*base_color[2]));
+      square.setFillColor(sf::Color(85 * (3 - (*px_intensity)[i].pixel[j]),
+                                    85 * (3 - (*px_intensity)[i].pixel[j]),
+                                    85 * (3 - (*px_intensity)[i].pixel[j])));
       square.setPosition(j * px_size, i * px_size);
       window.draw(square);
     }

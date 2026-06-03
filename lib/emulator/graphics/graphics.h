@@ -8,6 +8,7 @@
 #include "state.h"
 #include "interface.h"
 #include "graphics/graphicstate.h"
+#include <cstring>
 
 
 inline bool LCDEnabled (State &state) {return state.memory.f(Addr::LCDC) & 0x80;}
@@ -164,17 +165,10 @@ inline void getTileLine (
 }
 
 
-// Returns a tuple of two arrays: the first contains colors and the second wether it has priority
-inline std::tuple<std::array<Byte, SCREEN_PX_W>, std::array<bool, SCREEN_PX_W>>
-renderLineOBJ (Byte line_n, State &state)
+void renderLineOBJ (Byte line_n, ScreenLineData &line, const ScreenLineData &bgw_line_idcs, State &state)
 {
-  std::array<Byte, SCREEN_PX_W> line_obj;
-  std::array<bool, SCREEN_PX_W> pixel_priority;
-  line_obj.fill(static_cast<Byte>(BWColors::TRANS));
-  pixel_priority.fill(false);
-
   if (not objEnabled(state)) {
-    return {line_obj, pixel_priority};
+    return;
   }
 
   std::array<Short, 10> objs_in_line;
@@ -217,16 +211,16 @@ renderLineOBJ (Byte line_n, State &state)
       Byte n_px = obj_x + j - 8;
       // Check object is inside the viewport and there is no other higher priority object there
       if ((obj_x + j) >= 8 and (obj_x + j) < 168 and obj_x < px_written[n_px]) {
-        Byte px_color = (x_flip ? obj_line[7-j] : obj_line[j]);
-        if (px_color != static_cast<Byte>(BWColors::TRANS)) {
-          line_obj[n_px] = px_color;
-          pixel_priority[n_px] = priority;
-          px_written[n_px] = obj_x;
+        if (not priority or bgw_line_idcs[n_px] == 0) {
+          Byte px_color = (x_flip ? obj_line[7-j] : obj_line[j]);
+          if (px_color != static_cast<Byte>(BWColors::TRANS)) {
+            line[n_px] = px_color;
+            px_written[n_px] = obj_x;
+          }
         }
       }
     }
   }
-  return {line_obj, pixel_priority};
 }
 
 
@@ -250,21 +244,18 @@ renderLineWindow (Byte window_line_n, State &state)
 }
 
 
-inline std::tuple<std::array<Byte, SCREEN_PX_W>, std::array<Byte, SCREEN_PX_W>>
-renderLineBGW (Byte line_n, State &state)
+void renderLineBGW (Byte line_n, ScreenLineData &bg_line, ScreenLineData &bgw_line_idcs, State &state)
 {
   // If master BG and Window enable is off return white line
   if (not bgWinEnabled(state)) {
-    std::array<Byte,SCREEN_PX_W> bg_line;
-    std::array<Byte,SCREEN_PX_W> bg_line_color_idcs;
     bg_line.fill(static_cast<Byte>(BWColors::WHITE));
-    bg_line_color_idcs.fill(0);
-    return {bg_line, bg_line_color_idcs};
+    bgw_line_idcs.fill(0);
+    return;
   }
 
   // Get the entire BG screen line from the 256x256 map
-  std::array<Byte,256> bg_line;
-  std::array<Byte,256> bg_line_color_idcs;
+  std::array<Byte,256> bg_complete_line;
+  std::array<Byte,256> bg_complete_line_color_idcs;
   Byte scy = state.memory.f(Addr::SCY); // Viewport Y position
   Byte scx = state.memory.f(Addr::SCX); // Viewport X position
   Short base_addr_bg = (useBGTileMapHigh(state) ? 0x9C00 : 0x9800); // Select bg tile map area
@@ -275,13 +266,11 @@ renderLineBGW (Byte line_n, State &state)
   for (Short i = 0; i < 32; i++) {
     Short tile_data_ind = state.memory.f(addr_left_tile + i);
     getTileLine(
-      tile_data_ind, tile_line, false, false, &(bg_line[0]) + i*8,
-      &(bg_line_color_idcs[0]) + i*8, state
+      tile_data_ind, tile_line, false, false, &(bg_complete_line[0]) + i*8,
+      &(bg_complete_line_color_idcs[0]) + i*8, state
     );
   }
 
-  std::array<Byte, SCREEN_PX_W> bg_w_viewport_line;
-  std::array<Byte, SCREEN_PX_W> bg_w_viewport_line_color_idcs;
   Byte wy = state.memory.f(Addr::WY);
   int  wx = state.memory.f(Addr::WX); // Needs to be signed to prevent underflow when doing - 7
   // If enabled, get the window pixels and merge them with BG. Otherwise just copy BG pixels.
@@ -289,62 +278,39 @@ renderLineBGW (Byte line_n, State &state)
     auto [win_line, win_line_color_idx] = renderLineWindow(state.screen.window_y, state);
     // Render normal screen pixels until window found
     for (int i = 0; i + 7 < std::min(wx, int(SCREEN_PX_W + 7)); i++) {
-      bg_w_viewport_line[i] = bg_line[(i+scx)%256];
-      bg_w_viewport_line_color_idcs[i] = bg_line_color_idcs[(i+scx)%256];
+      bg_line[i] = bg_complete_line[(i+scx)%256];
+      bgw_line_idcs[i] = bg_complete_line_color_idcs[(i+scx)%256];
     }
     // Render window pixels
     int base_win_px = std::max(0, 7 - wx); // Idx of the leftmost pixel of the window shown
     int base_win_pos = std::max(0, wx - 7); // Position of the leftmost pixel of the window in screen
     // If there is something to draw from the window, increment window_y
-    if (SCREEN_PX_W - wx + 7 > 0) {
+    if (int(SCREEN_PX_W) - wx + 7 > 0) {
       state.screen.window_y++;
     }
-    for (int i = 0; i < std::clamp(SCREEN_PX_W + 7 - wx, 0u, uint(SCREEN_PX_W)); i++) {
-      bg_w_viewport_line[base_win_pos + i] = win_line[base_win_px + i];
-      bg_w_viewport_line_color_idcs[base_win_pos + i] = win_line_color_idx[base_win_px + i];
+    for (int i = 0; i < std::clamp(int(SCREEN_PX_W) + 7 - wx, 0, int(SCREEN_PX_W)); i++) {
+      bg_line[base_win_pos + i] = win_line[base_win_px + i];
+      bgw_line_idcs[base_win_pos + i] = win_line_color_idx[base_win_px + i];
     }
   } else {
     for (int i = 0; i < SCREEN_PX_W; i++) {
-      bg_w_viewport_line[i] = bg_line[(i+scx)%256];
-      bg_w_viewport_line_color_idcs[i] = bg_line_color_idcs[(i+scx)%256];
+      bg_line[i] = bg_complete_line[(i+scx)%256];
+      bgw_line_idcs[i] = bg_complete_line_color_idcs[(i+scx)%256];
     }
   }
-
-  return {bg_w_viewport_line, bg_w_viewport_line_color_idcs};
-}
-
-
-inline float colorNumToFloat (Byte color)
-{
-  switch (color) {
-    case static_cast<Byte>(BWColors::WHITE):
-      return 1.00;
-    case static_cast<Byte>(BWColors::LGRAY):
-      return 0.66;
-    case static_cast<Byte>(BWColors::DGRAY):
-      return 0.33;
-    case static_cast<Byte>(BWColors::BLACK):
-      return 0.00;
-  }
-  return 0.00;
 }
 
 
 inline void renderLine (Byte line_n, State &state)
 {
-  auto [obj_line, obj_priority] = renderLineOBJ(line_n, state);
-  auto [bgw_line, bgw_line_idcs] = renderLineBGW(line_n, state);
-  // Merge BG, Window and Object pixels and write to screen as float intensity
-  for (Byte i = 0; i < SCREEN_PX_W; i++) {
-    // If priority then BG and Window colors != 0 draw over OBJ
-    if (obj_priority[i]) {
-      Byte pixel_color = (obj_line[i] == static_cast<Byte>(BWColors::TRANS) or bgw_line_idcs[i] != 0 ? bgw_line[i] : obj_line[i]);
-      (*state.screen.line)[line_n].pixel[i] = colorNumToFloat(pixel_color);
-    } else {
-      Byte pixel_color = (obj_line[i] == static_cast<Byte>(BWColors::TRANS) ? bgw_line[i] : obj_line[i]);
-      (*state.screen.line)[line_n].pixel[i] = colorNumToFloat(pixel_color);
-    }
-  }
+  ScreenLineData line_data, bgw_line_idcs;
+  renderLineBGW(line_n, line_data, bgw_line_idcs, state);
+  renderLineOBJ(line_n, line_data, bgw_line_idcs, state);
+  std::memcpy(
+    (*state.screen.line)[line_n].pixel.data(),
+    line_data.data(),
+    SCREEN_PX_W * sizeof(Byte)
+  );
 }
 
 

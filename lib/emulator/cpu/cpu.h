@@ -14,8 +14,6 @@
 #include "buttoninputs.h"
 #include "timing.h"
 
-#include "utils/profiling.h" // TODO remove
-
 
 
 template<class InterfaceT, bool debug>
@@ -24,7 +22,6 @@ void execute (State &state, InterfaceT &interface) {
   Byte opcode = 0x00, data0 = 0x00, data1 = 0x00;
 
   while (not state.end_emulation) {
-    Profiler<8>::measure<0>();
     if (not state.halted) {
       opcode = state.memory.r(state.PC);
       data0  = state.memory.r((state.PC+1)&0xFFFF);
@@ -37,7 +34,6 @@ void execute (State &state, InterfaceT &interface) {
     } else {
       state.cycles += 4; // Make clock work when halted
     }
-    Profiler<8>::measure<1>();
     // Update buttons once normally and hang looking for button input if stopped
     do {
       // This is here so that emulator doesn't freeze on stop
@@ -48,17 +44,11 @@ void execute (State &state, InterfaceT &interface) {
         state.memory.w(Addr::DIV, 0); // Write something to DIV so that it resets
       }
     } while (state.stopped and not state.end_emulation);
-    Profiler<8>::measure<2>();
     updateTimeRegisters(state);
-    Profiler<8>::measure<3>();
     updateGraphics(state, interface);
-    Profiler<8>::measure<4>();
     updateAudio(state, interface);
-    Profiler<8>::measure<5>();
     checkAndCallInterrupt(state);
-    Profiler<8>::measure<6>();
     synchExecution(state, interface);
-    Profiler<8>::measure<7>();
     n_instrs++;
   }
 }

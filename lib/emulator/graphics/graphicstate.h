@@ -39,7 +39,7 @@ enum class BWColors : Byte {
 
 
 using PaletteColors = std::array<Byte,4>;
-using ScreenLineData = std::array<float, SCREEN_PX_W>;
+using ScreenLineData = std::array<Byte, SCREEN_PX_W>;
 
 struct ScreenLine{
   ulong frame_last_updated = 0;
