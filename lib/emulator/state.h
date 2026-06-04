@@ -27,7 +27,6 @@ struct State {
   bool halted = false;
   bool stopped = false;
   bool ime = false; // Interrupt Master Enable cpu flag
-  ulong cycles = 0; // Total execution cycles (execution clock)
   Timing timing;
   ScreenFrame screen;
   AudioState audio;

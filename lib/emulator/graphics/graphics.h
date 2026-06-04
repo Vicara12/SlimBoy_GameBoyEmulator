@@ -30,7 +30,7 @@ inline bool bgWinEnabled (State &state) {return state.memory.f(Addr::LCDC) & 0x0
 
 inline ScreenMode getMode (State &state, Byte &current_line)
 {
-  ulong current_dot = state.cycles%DOTS_PER_FRAME;
+  ulong current_dot = state.timing.cycles%DOTS_PER_FRAME;
   current_line = current_dot/DOTS_PER_LINE;
   if (current_line >= SCREEN_PX_H) {
     return ScreenMode::VBLANK;
@@ -333,7 +333,7 @@ inline void updateGraphics (State &state, InterfaceT &interface)
   }
 
   // Check if a new line needs to be rendered
-  ulong current_frame = state.cycles/DOTS_PER_FRAME;
+  ulong current_frame = state.timing.cycles/DOTS_PER_FRAME;
   if (mode == ScreenMode::HBLANK and current_frame != (*state.screen.line)[line_n].frame_last_updated) {
     renderLine(line_n, state);
     // If rendered last line of frame and frame has been rendered from line 0, call screen update

@@ -167,7 +167,7 @@ inline void pulseChannelState (State &state, PulseChannelData &ch_data) {
   if (NRX2_written or NRX4_written) {
     if (NRX4_written) {
       if (chLenEnabled<channel>(state))
-        ch_data.auto_off_clk = state.cycles + (64 - chInitialLenTimer<channel>(state)) * (CLOCK_FREQ/256);
+        ch_data.auto_off_clk = state.timing.cycles + (64 - chInitialLenTimer<channel>(state)) * (CLOCK_FREQ/256);
       else
         ch_data.auto_off_clk = std::numeric_limits<ulong>::max();
     }
@@ -180,9 +180,9 @@ inline void pulseChannelState (State &state, PulseChannelData &ch_data) {
       state.memory.f(Addr::NR14) &= 0x7F; // Clear trigger bit
       ch_data.on = true;
       // Period overflow will be detected, sequence_idx increased to 0 and that will trigger CH1 config
-      ch_data.period_overflow_clk = state.cycles;
+      ch_data.period_overflow_clk = state.timing.cycles;
       ch_data.envelope_pace = chEnvelopePace<channel>(state);
-      ch_data.envelope_next_clk = state.cycles + ch_data.envelope_pace*(CLOCK_FREQ/64);
+      ch_data.envelope_next_clk = state.timing.cycles + ch_data.envelope_pace*(CLOCK_FREQ/64);
       ch_data.sequence_idx = 7;
       ch_data.volume = chVol<channel>(state) * 17; // Scale [0,15] -> [0,255]
       if constexpr (channel == AudioChannel::CH1)
@@ -195,7 +195,7 @@ inline void pulseChannelState (State &state, PulseChannelData &ch_data) {
 
 template<AudioChannel channel, typename ChDataT>
 inline void checkNewEnvelopeVolume (State &state, ChDataT &ch_data) {
-  if (ch_data.envelope_pace != 0 and state.cycles >= ch_data.envelope_next_clk) {
+  if (ch_data.envelope_pace != 0 and state.timing.cycles >= ch_data.envelope_next_clk) {
     ch_data.envelope_next_clk += ch_data.envelope_pace*(CLOCK_FREQ/64);
     if (chEnvDir<channel>(state)) {
       if (ch_data.volume != 255)
@@ -210,7 +210,7 @@ inline void checkNewEnvelopeVolume (State &state, ChDataT &ch_data) {
 
 inline void checkNewPace (State &state, PulseChannelData &ch_data) {
   Short new_pace = ch1SweepPace(state);
-  if (state.cycles >= ch_data.pace_change_clk) {
+  if (state.timing.cycles >= ch_data.pace_change_clk) {
     ch_data.pace_change_clk += new_pace * (CLOCK_FREQ/128);
     ch_data.last_pace = new_pace;
     Short period = getChPeriod<AudioChannel::CH1>(state);
@@ -241,7 +241,7 @@ inline void processPulseChannel (
 ) {
   pulseChannelState<channel>(state, ch_data);
 
-  if (state.cycles >= ch_data.auto_off_clk) {
+  if (state.timing.cycles >= ch_data.auto_off_clk) {
     ch_data.auto_off_clk = std::numeric_limits<ulong>::max();
     ch_data.on = false;
   }
@@ -255,13 +255,13 @@ inline void processPulseChannel (
       ch_data.pace_change_clk = std::numeric_limits<ulong>::max();
     }
     else if (ch_data.last_pace == 0) {
-      ch_data.pace_change_clk = state.cycles;
+      ch_data.pace_change_clk = state.timing.cycles;
     }
   }
 
-  if (state.cycles >= ch_data.period_overflow_clk) {
-    ulong reminder = state.cycles - ch_data.period_overflow_clk;
-    ch_data.period_overflow_clk = state.cycles + 4 * (0x0800 - getChPeriod<channel>(state)) - reminder;
+  if (state.timing.cycles >= ch_data.period_overflow_clk) {
+    ulong reminder = state.timing.cycles - ch_data.period_overflow_clk;
+    ch_data.period_overflow_clk = state.timing.cycles + 4 * (0x0800 - getChPeriod<channel>(state)) - reminder;
     ch_data.sequence_idx = (ch_data.sequence_idx + 1)%8;
     // Configuration is only changed at the begining of an audio sequencer
     if (ch_data.sequence_idx == 0) {
@@ -304,16 +304,16 @@ inline void processWaveChannel (State &state, int &sample_l, int &sample_r) {
     if (chTriggered<AudioChannel::CH3>(state)) {
       state.memory.f(Addr::NR34) &= 0x7F; // Clear trigger bit
       ch3.on = true;
-      ch3.period_overflow_clk = state.cycles;
+      ch3.period_overflow_clk = state.timing.cycles;
       ch3.ram_idx = 0;
     }
     if (chLenEnabled<AudioChannel::CH3>(state))
-      ch3.auto_off_clk = state.cycles + (256 - chInitialLenTimer<AudioChannel::CH3>(state)) * (CLOCK_FREQ/256);
+      ch3.auto_off_clk = state.timing.cycles + (256 - chInitialLenTimer<AudioChannel::CH3>(state)) * (CLOCK_FREQ/256);
     else
       ch3.auto_off_clk = std::numeric_limits<ulong>::max();
   }
 
-  if (state.cycles >= ch3.auto_off_clk) {
+  if (state.timing.cycles >= ch3.auto_off_clk) {
     ch3.auto_off_clk = std::numeric_limits<ulong>::max();
     ch3.on = false;
   }
@@ -322,7 +322,7 @@ inline void processWaveChannel (State &state, int &sample_l, int &sample_r) {
     return;
   }
 
-  if (state.cycles >= ch3.period_overflow_clk) {
+  if (state.timing.cycles >= ch3.period_overflow_clk) {
     ch3.period_overflow_clk += 2 * (0x0800 - getChPeriod<AudioChannel::CH3>(state));
     ch3.ram_idx = (ch3.ram_idx+1)%32;
     Byte mem_val = state.memory.f(Addr::WPRAM + ch3.ram_idx/2);
@@ -379,21 +379,21 @@ inline void noiseChannelState(State &state, NoiseChannelData &ch4) {
       ch4.on = true;
       ch4.volume = chVol<AudioChannel::CH4>(state) * 17; // Scale [0,15] -> [0,255]
       ch4.envelope_pace = chEnvelopePace<AudioChannel::CH4>(state);
-      ch4.envelope_next_clk = state.cycles + ch4.envelope_pace*(CLOCK_FREQ/64);
+      ch4.envelope_next_clk = state.timing.cycles + ch4.envelope_pace*(CLOCK_FREQ/64);
       ch4.lfsr = 0x7FFF;
       NR43_written = true; // This will trigger LFSR frequency calculation below
     }
     if (chLenEnabled<AudioChannel::CH4>(state))
-      ch4.auto_off_clk = state.cycles + (64 - chInitialLenTimer<AudioChannel::CH4>(state)) * (CLOCK_FREQ/256);
+      ch4.auto_off_clk = state.timing.cycles + (64 - chInitialLenTimer<AudioChannel::CH4>(state)) * (CLOCK_FREQ/256);
     else
       ch4.auto_off_clk = std::numeric_limits<ulong>::max();
   }
   if (NR43_written) {
     ch4.noise_shift_cycles = noiseShiftCycles(state);
-    ch4.period_overflow_clk = state.cycles;
+    ch4.period_overflow_clk = state.timing.cycles;
   }
 
-  if (state.cycles >= ch4.auto_off_clk) {
+  if (state.timing.cycles >= ch4.auto_off_clk) {
     ch4.auto_off_clk = std::numeric_limits<ulong>::max();
     ch4.on = false;
   }
@@ -408,9 +408,9 @@ inline void processNoiseChannel(State &state, int &sample_l, int &sample_r) {
     return;
   }
 
-  if (state.cycles >= ch4.period_overflow_clk) {
-    ulong reminder = state.cycles - ch4.period_overflow_clk;
-    ch4.period_overflow_clk = state.cycles + ch4.noise_shift_cycles - reminder;
+  if (state.timing.cycles >= ch4.period_overflow_clk) {
+    ulong reminder = state.timing.cycles - ch4.period_overflow_clk;
+    ch4.period_overflow_clk = state.timing.cycles + ch4.noise_shift_cycles - reminder;
     checkNewEnvelopeVolume<AudioChannel::CH4, NoiseChannelData>(state, ch4);
     ch4.signal_value = cycleLFSR(state) * ch4.volume;
   }
@@ -437,7 +437,7 @@ inline void clearAudioRegs (State &state)
 
 template<class InterfaceT>
 inline void updateAudio (State &state, InterfaceT &interface) {
-  while (state.cycles >= state.audio.cycles_next_push) {
+  while (state.timing.cycles >= state.audio.cycles_next_push) {
     state.audio.cycles_next_push += PUSH_AUDIO_EACH;
 
     if (not audioEnabled(state)) {

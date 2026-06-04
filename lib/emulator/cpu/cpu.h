@@ -30,9 +30,9 @@ void execute (State &state, InterfaceT &interface) {
         interface.print(cycleStr(opcode, data0, data1, state) + "\n");
       }
       state.PC += instrLen(opcode);
-      state.cycles += executeInstruction(opcode, data0, data1, state);
+      state.timing.cycles += executeInstruction(opcode, data0, data1, state);
     } else {
-      state.cycles += 4; // Make clock work when halted
+      state.timing.cycles += 4; // Make clock work when halted
     }
     // Profiler<8>::measure<1>();
     // Update buttons once normally and hang looking for button input if stopped

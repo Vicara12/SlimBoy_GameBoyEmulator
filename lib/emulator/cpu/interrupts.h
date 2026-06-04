@@ -38,6 +38,6 @@ inline void checkAndCallInterrupt (State &state) {
   state.memory.f(--state.SP) = state.PC >> 8;
   state.memory.f(--state.SP) = state.PC & 0xFF;
   state.PC = 0x0040 + (interrupt_idx * 8);
-  state.cycles += 20;
+  state.timing.cycles += 20;
   return;
 }

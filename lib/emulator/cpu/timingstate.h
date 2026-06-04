@@ -21,4 +21,5 @@ struct Timing {
   ulong cycles_last_synch = 0;
   ulong cycles_next_synch = 0;
   ulong t_last_emu_rate = 0;
+  ulong cycles = 0; // Total execution cycles (execution clock)
 };

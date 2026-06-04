@@ -7,6 +7,7 @@
 #include <vector>
 #include <optional>
 #include "types.h"
+#include "cpu/timingstate.h"
 
 
 inline constexpr size_t GB_MEM_SIZE = 0x10000;
@@ -148,6 +149,7 @@ private:
   bool lcd_enabled = false;
   bool initialized = false;
   CartHardware hardware;
+  Timing *timing;
 
 
   inline void performDMATransfer (Byte data) {
@@ -213,6 +215,9 @@ private:
 
 
 public:
+
+  inline void hookState (Timing *time_state) {timing = time_state;}
+
 
   inline ~Memory () {
     if (initialized) {
@@ -331,6 +336,16 @@ public:
       if      (addr == Addr::LCDC) {lcd_enabled = ((data & 0x80) != 0);}
       else if (addr == Addr::BANK) {replaceBootRom();}
       else if (addr == Addr::DMA ) {performDMATransfer(data);}
+      // Update time hooks (checks that run inside very hot emulator paths)
+      else if (addr == Addr::DIV) {
+        timing->cycles_next_DIV_inc = timing->cycles + 256;
+        f(Addr::DIV) = 0;
+      }
+      else if (addr == Addr::TAC) {
+        timing->enable_TIMA = (data & 0x04);
+        timing->cycles_div_TIMA = getDivFromTAC(data);
+        timing->cycles_next_TIMA_inc = timing->cycles;
+      }
 
     }
   }
