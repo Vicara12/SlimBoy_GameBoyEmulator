@@ -52,5 +52,27 @@ struct ScreenFrame {
   ScreenMode last_mode = ScreenMode::HBLANK;
   bool ly_lyc_flag_already_set = false;
   Byte window_y = 0;
+  PaletteColors bgw_palette;
+  PaletteColors obp0_palette;
+  PaletteColors obp1_palette;
   ScreenPixels *line;
 };
+
+
+// Palette color extraction requires interleaving bits with zeros (0b11 -> 0b0101)
+// Precompute all possible values 256 into a lookup table
+constexpr std::array<uint16_t, 256> generateInterleaveLUT() {
+    std::array<uint16_t, 256> lut = {};
+    for (int i = 0; i < 256; i++) {
+        uint16_t val = 0;
+        for (int b = 0; b < 8; b++) {
+            if (i & (1 << b)) {
+                val |= (1 << (b * 2));
+            }
+        }
+        lut[i] = val;
+    }
+    return lut;
+}
+
+static constexpr auto INTERLEAVE_LUT = generateInterleaveLUT();

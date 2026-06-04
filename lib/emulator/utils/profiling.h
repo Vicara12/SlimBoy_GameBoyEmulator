@@ -58,7 +58,7 @@ public:
         next_print_cycles = next_print_cycles + PRINT_FREQ;
       }
     }
-    cpu_cycles[marker] = micros();
+    cpu_cycles[marker] = esp_cpu_get_ccount();
     #endif
   }
 };

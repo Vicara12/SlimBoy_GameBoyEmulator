@@ -1,5 +1,6 @@
 
 // #define PROFILE // TODO remove
+#include "utils/profiling.h"
 
 #include <Arduino.h>
 #include <vector>
@@ -14,9 +15,10 @@ auto emu_cfg = EmulatorConfig{
   .synch_execution = false,
   .skip_boot_room = false
 };
-const std::string game_path_ = "/Tetris.gb";
-// const std::string game_path_ = "/Dr_Mario.gb";
+// const std::string game_path_ = "/Tetris.gb";
+const std::string game_path_ = "/Dr_Mario.gb";
 // const std::string game_path_ = "/Zelda.gb";
+// const std::string game_path_ = "/dmg-acid2.gb";
 
 
 // void launchEmulator () {
