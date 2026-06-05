@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(slimboy VERSION 1.0.0 LANGUAGES CXX)
+project(gb_core VERSION 1.0.0 LANGUAGES CXX)
 
-add_library(slimboy INTERFACE)
+add_library(gb_core INTERFACE)
 
-target_include_directories(slimboy
+target_include_directories(gb_core
     INTERFACE 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
