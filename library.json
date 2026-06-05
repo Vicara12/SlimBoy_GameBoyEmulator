@@ -1,0 +1,12 @@
+{
+  "name": "slimboy",
+  "version": "1.0.0",
+  "description": "Header-only Game Boy Emulator Core",
+  "keywords": ["emulator", "gameboy", "header-only"],
+  "build": {
+    "flags": [
+      "-I .",
+      "-std=gnu++2a"
+    ]
+  }
+}
