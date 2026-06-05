@@ -11,6 +11,8 @@
 #include <cstring>
 
 
+namespace gb {
+
 inline bool LCDEnabled (State &state) {return state.memory.f(Addr::LCDC) & 0x80;}
 
 inline bool winUseTileMapHigh (State &state) {return state.memory.f(Addr::LCDC) & 0x40;}
@@ -346,3 +348,5 @@ inline void updateGraphics (State &state, InterfaceT &interface)
     (*state.screen.line)[line_n].frame_last_updated = current_frame;
   }
 }
+
+} // namespace gb

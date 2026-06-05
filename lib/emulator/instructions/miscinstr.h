@@ -7,6 +7,9 @@
 #include "state.h"
 #include "instructiondefines.h"
 
+
+namespace gb {
+
 // DAA: decimal adjust register A
 inline int instr_DAA (State &state)
 {
@@ -54,3 +57,5 @@ inline int instr_DI_EI (State &state, bool enable)
   state.ime = enable;
   return 4;
 }
+
+} // namespace gb

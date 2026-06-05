@@ -3,6 +3,9 @@
 #include "state.h"
 #include "interrupts.h"
 
+
+namespace gb {
+
 inline constexpr ulong EMU_SYNCH_FREQ = 128;
 inline constexpr ulong EMU_SYNCH_CYCLES = CLOCK_FREQ / EMU_SYNCH_FREQ;
 
@@ -53,3 +56,5 @@ inline void synchExecution (State &state, InterfaceT &interface) {
     interface.sleepMillis(diff_ms);
   }
 }
+
+} // namespace gb

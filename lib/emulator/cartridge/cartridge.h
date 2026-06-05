@@ -9,6 +9,7 @@
 #include "types.h"
 
 
+namespace gb {
 
 struct CartridgeInfo {
   std::string game_title = "";
@@ -158,3 +159,5 @@ inline CartridgeInfo loadGame (const std::vector<Byte> &cartridge, State &state)
   state.memory.initialize(cartridge, cart_info.hardware);
   return cart_info;
 }
+
+} // namespace gb

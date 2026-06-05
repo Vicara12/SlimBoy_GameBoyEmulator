@@ -3,6 +3,8 @@
 #include "state.h"
 
 
+namespace gb {
+
 enum class Interrupt : Byte {
   VBLANK = 0x01,
   LCD    = 0x02,
@@ -41,3 +43,5 @@ inline void checkAndCallInterrupt (State &state) {
   state.timing.cycles += 20;
   return;
 }
+
+} // namespace gb

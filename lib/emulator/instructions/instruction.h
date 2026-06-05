@@ -11,6 +11,8 @@
 #include "instructions/flowctrlinstr.h"
 
 
+namespace gb {
+
 inline Short instrLen (Byte opcode)
 {
   static const Byte INSTR_LENGTHS[256] = {
@@ -1081,3 +1083,5 @@ inline int executeInstruction (Byte opcode, Byte data0, Byte data1, State &state
     return -1;
   }
 }
+
+} // namespace gb

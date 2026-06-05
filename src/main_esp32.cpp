@@ -6,8 +6,8 @@
 
 float er;
 ESP32Interface *interface;
-GameRom game_rom;
-auto emu_cfg = EmulatorConfig{
+gb::GameRom game_rom;
+auto emu_cfg = gb::EmulatorConfig{
   .synch_execution = false,
   .skip_boot_room = false
 };
@@ -46,7 +46,7 @@ void setup() {
   readGameRom(game_path_);
   Serial.println("Done reading game ROM");
   
-  emulator<ESP32Interface, false>(*interface, game_rom, emu_cfg);
+  gb::emulator<ESP32Interface, false>(*interface, game_rom, emu_cfg);
 }
 
 void loop() {

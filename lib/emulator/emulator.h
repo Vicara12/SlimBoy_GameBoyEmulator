@@ -13,6 +13,8 @@
 #include "cartridge/cartridge.h"
 
 
+namespace gb {
+
 struct EmulatorConfig {
   bool synch_execution = true;
   bool skip_boot_room = false;
@@ -46,3 +48,5 @@ void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorCon
     interface.informEmulationEnded();
   }
 }
+
+} // namespace gb

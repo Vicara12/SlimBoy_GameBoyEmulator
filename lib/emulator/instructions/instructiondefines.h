@@ -3,6 +3,8 @@
 #include "types.h"
 
 
+namespace gb {
+
 // Flag setting utils
 enum class Flag : Byte {
   ZERO       = 0x80,
@@ -49,3 +51,5 @@ void condSetFlag (State &state, bool condition) {
 #define SET_REG_BC(value, state) STORE_SHORT(value, state.B, state.C)
 #define SET_REG_DE(value, state) STORE_SHORT(value, state.D, state.E)
 #define SET_REG_HL(value, state) STORE_SHORT(value, state.H, state.L)
+
+} // namespace gb

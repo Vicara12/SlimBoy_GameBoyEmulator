@@ -9,6 +9,8 @@
 #include "memory/memory.h"
 
 
+namespace gb {
+
 // SWAP n: swap upper and lower nibbles of n
 inline int instr_SWAP_n (Reg &n, State &state)
 {
@@ -273,3 +275,5 @@ inline int instr_RES_b_mem_HL (State &state)
   state.memory.w(HL, val);
   return 16;
 }
+
+} // namespace gb

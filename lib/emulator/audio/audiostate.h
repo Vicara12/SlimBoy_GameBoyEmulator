@@ -6,6 +6,8 @@
 #include "cpu/timingstate.h"
 
 
+namespace gb {
+
 inline constexpr ulong SAMPLE_RATE       = 32768;
 inline constexpr ulong AUDIO_UPDATE_FREQ = 32;
 inline constexpr ulong AUDIO_BUFFER_SIZE = SAMPLE_RATE / AUDIO_UPDATE_FREQ;
@@ -80,3 +82,5 @@ struct AudioState {
   NoiseChannelData ch4;
   bool registers_cleared = false;
 };
+
+} // namespace gb

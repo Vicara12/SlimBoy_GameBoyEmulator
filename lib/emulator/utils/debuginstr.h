@@ -12,6 +12,8 @@
 #include "instructions/instruction.h"
 
 
+namespace gb {
+
 struct Touched {
   bool AF = false;
   bool BC = false;
@@ -569,3 +571,5 @@ inline std::string cycleStr (Byte opcode, Byte data0, Byte data1, State &state)
 
   return preamble + " " + instr + " " + state_ss.str();
 }
+
+} // namespace gb

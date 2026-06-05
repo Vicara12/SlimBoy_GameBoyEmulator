@@ -10,7 +10,7 @@
 #include "types.h"
 
 
-bool readRom (const std::string &path, GameRom &game_rom);
+bool readRom (const std::string &path, gb::GameRom &game_rom);
 
 void interfaceLoop (PCInterface &if_data, std::thread &emulation_thread, sf::RenderWindow &window);
 

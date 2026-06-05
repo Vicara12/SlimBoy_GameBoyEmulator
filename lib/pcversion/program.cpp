@@ -8,13 +8,13 @@
 
 
 sf::RenderWindow createWindow (int px_size) {
-  const int windowWidth = px_size*SCREEN_PX_W;
-  const int windowHeight = px_size*SCREEN_PX_H;
+  const int windowWidth = px_size*gb::SCREEN_PX_W;
+  const int windowHeight = px_size*gb::SCREEN_PX_H;
   return sf::RenderWindow(sf::VideoMode(windowWidth, windowHeight), "Game Boy");
 }
 
 
-bool readRom (const std::string &path, GameRom &game_rom) {
+bool readRom (const std::string &path, gb::GameRom &game_rom) {
   // Open file at the end for size
   std::ifstream file(path, std::ios::binary | std::ios::ate);
   if (!file.is_open()) {
@@ -34,12 +34,12 @@ bool readRom (const std::string &path, GameRom &game_rom) {
 
 
 void drawScreen (sf::RenderWindow &window, PCInterface &interface) {
-  ScreenPixels *px_intensity = interface.getLatestScreen();
-  int px_size = window.getSize().x/SCREEN_PX_W;
+  gb::ScreenPixels *px_intensity = interface.getLatestScreen();
+  int px_size = window.getSize().x/gb::SCREEN_PX_W;
 
   window.clear();
-  for (int i = 0; i < SCREEN_PX_H; i++) {
-    for (int j = 0; j < SCREEN_PX_W; j++) {
+  for (int i = 0; i < gb::SCREEN_PX_H; i++) {
+    for (int j = 0; j < gb::SCREEN_PX_W; j++) {
       sf::RectangleShape square(sf::Vector2f(px_size, px_size));
       square.setFillColor(sf::Color(85 * (3 - (*px_intensity)[i].pixel[j]),
                                     85 * (3 - (*px_intensity)[i].pixel[j]),
@@ -60,23 +60,23 @@ bool handleInputs (sf::RenderWindow &window, PCInterface &interface) {
     }
   }
   // GB buttons to kb keys mapping
-  std::map<sf::Keyboard::Key,Button>key_binds = {
+  std::map<sf::Keyboard::Key,gb::Button>key_binds = {
     // Dir pad
-    {sf::Keyboard::W,    Button::Up},
-    {sf::Keyboard::A,  Button::Left},
-    {sf::Keyboard::S,  Button::Down},
-    {sf::Keyboard::D, Button::Right},
+    {sf::Keyboard::W,    gb::Button::Up},
+    {sf::Keyboard::A,  gb::Button::Left},
+    {sf::Keyboard::S,  gb::Button::Down},
+    {sf::Keyboard::D, gb::Button::Right},
     // Other buttons
-    {sf::Keyboard::O,      Button::A},
-    {sf::Keyboard::K,      Button::B},
-    {sf::Keyboard::N, Button::Select},
-    {sf::Keyboard::M,  Button::Start},
+    {sf::Keyboard::O,      gb::Button::A},
+    {sf::Keyboard::K,      gb::Button::B},
+    {sf::Keyboard::N, gb::Button::Select},
+    {sf::Keyboard::M,  gb::Button::Start},
   };
   // Update GB buttons pressed
-  Byte buttons_pressed = 0x00;
+  gb::Byte buttons_pressed = 0x00;
   for (const auto& bind : key_binds) {
     if (sf::Keyboard::isKeyPressed(bind.first)) {
-      buttons_pressed |= static_cast<Byte>(bind.second);
+      buttons_pressed |= static_cast<gb::Byte>(bind.second);
     }
   }
   interface.setButtons(buttons_pressed);

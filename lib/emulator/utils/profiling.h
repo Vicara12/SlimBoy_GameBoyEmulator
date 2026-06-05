@@ -10,6 +10,8 @@
 #endif
 
 
+namespace gb {
+
 template<size_t n_markers>
 class Profiler {
   inline static constexpr uint32_t PRINT_FREQ = 240'000'000 * 2;
@@ -62,3 +64,5 @@ public:
     #endif
   }
 };
+
+} // namespace gb

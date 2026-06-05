@@ -10,6 +10,7 @@
 #include "audio/audiostate.h"
 
 
+namespace gb {
 
 // This template class contains the function declarations that get called whenever interaction with
 // the underlying hardware is needed (for example for button input or timing).
@@ -112,3 +113,5 @@ protected:
     }
   }
 };
+
+} // namespace gb

@@ -5,6 +5,8 @@
 #include "interrupts.h"
 
 
+namespace gb {
+
 enum class Button : Byte {
   Right  = 0x01,
   Left   = 0x02,
@@ -47,3 +49,5 @@ inline void updateButtons (ulong n_instrs, State &state, InterfaceT &interface) 
     setInterrupt<Interrupt::JOYPAD>(state);
   }
 }
+
+} // namespace gb

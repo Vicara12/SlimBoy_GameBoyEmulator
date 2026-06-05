@@ -7,6 +7,8 @@
 #include "types.h"
 
 
+namespace gb {
+
 // General audio registers
 inline bool audioEnabled(State &state) {
   return state.memory.f(Addr::NR52) & 0x80;
@@ -472,3 +474,5 @@ inline void updateAudio (State &state, InterfaceT &interface) {
     }
   }
 }
+
+} // namespace gb

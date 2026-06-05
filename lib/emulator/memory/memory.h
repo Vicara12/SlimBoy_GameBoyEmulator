@@ -10,6 +10,8 @@
 #include "cpu/timingstate.h"
 
 
+namespace gb {
+
 inline constexpr size_t GB_MEM_SIZE = 0x10000;
 
 
@@ -410,3 +412,5 @@ public:
   inline void setVRAMWriteEnabled (bool state) {vram_w_enabled = state;}
   inline void setOAMWriteEnabled (bool state) {oam_w_enabled = state;}
 };
+
+} // namespace gb

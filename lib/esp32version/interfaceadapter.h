@@ -4,7 +4,7 @@
 #include "interface.h"
 
 
-class ESP32Interface : public HardwareInterface<ESP32Interface> {
+class ESP32Interface : public gb::HardwareInterface<ESP32Interface> {
 public:
 
   inline void print (const std::string_view &s) {Serial.print(s.data());}
@@ -17,7 +17,7 @@ public:
 
   inline ulong realTimeMicros () {return micros();}
 
-  inline void playAudio (const AudioPacket &ap) {}
+  inline void playAudio (const gb::AudioPacket &ap) {}
 
   inline void informEmuRate (float r) {Serial.println(r);};
 };

@@ -15,6 +15,8 @@
 #include "timing.h"
 
 
+namespace gb {
+
 template<class InterfaceT, bool debug>
 void execute (State &state, InterfaceT &interface) {
   ulong n_instrs = 0;
@@ -51,3 +53,5 @@ void execute (State &state, InterfaceT &interface) {
     n_instrs++;
   }
 }
+
+} // namespace gb

@@ -8,6 +8,7 @@
 #include "memory/memory.h"
 
 
+namespace gb {
 
 inline void handleFlag (Short a, Short b, Short result, State &state) {
   condSetFlag<Flag::ZERO>(state, Byte(result) == 0);
@@ -187,3 +188,5 @@ inline int instr_INC_DEC_SP (State &state) {
   else               state.SP++;
   return 8;
 }
+
+} // namespace gb

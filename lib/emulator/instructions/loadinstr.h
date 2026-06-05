@@ -8,6 +8,9 @@
 #include "instructiondefines.h"
 #include "state.h"
 
+
+namespace gb {
+
 // LD nn,n: put 8 bit immediate value n into register nn
 inline int instr_LD_nn_n (Reg &nn, Byte n)
 {
@@ -125,3 +128,5 @@ inline int instr_POP_nn (Reg &upper_reg, Reg &lower_reg, State &state)
   upper_reg = state.memory.r(state.SP++);
   return 12;
 }
+
+} // namespace gb

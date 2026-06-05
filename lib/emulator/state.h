@@ -11,6 +11,7 @@
 #include "cpu/timingstate.h"
 
 
+namespace gb {
 
 struct State {
   Reg A = 0;
@@ -33,3 +34,5 @@ struct State {
   float target_speed = 1.0;
   bool end_emulation = false;
 };
+
+} // namespace gb

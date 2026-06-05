@@ -9,7 +9,7 @@ inline constexpr int PX_WIDTH = 4;
 
 
 int main (int argc, char **argv) {
-  GameRom game_rom;
+  gb::GameRom game_rom;
   if (argc > 1) {
     // Read game rom, if there was an error quit emulator
     if (not readRom(std::string(argv[1]), game_rom)) {
@@ -19,12 +19,12 @@ int main (int argc, char **argv) {
     std::cout << "ERROR: No game provided." << std::endl;
     return 1;
   }
-  EmulatorConfig config = {
+  gb::EmulatorConfig config = {
     .synch_execution = true,
     .skip_boot_room = false
   };
   sf::RenderWindow window = createWindow(PX_WIDTH);
   PCInterface interface;
-  std::thread emulation_thread(emulator<PCInterface,false>, std::ref(interface), game_rom, config);
+  std::thread emulation_thread(gb::emulator<PCInterface,false>, std::ref(interface), game_rom, config);
   interfaceLoop(interface, emulation_thread, window);
 }

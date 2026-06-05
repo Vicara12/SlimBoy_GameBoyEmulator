@@ -14,8 +14,8 @@
 
 
 
-class PCInterface : public HardwareInterface<PCInterface> {
-  EmulatorAudioStream<8*AUDIO_BUFFER_SIZE> audio_stream;
+class PCInterface : public gb::HardwareInterface<PCInterface> {
+  EmulatorAudioStream<8*gb::AUDIO_BUFFER_SIZE> audio_stream;
   std::chrono::steady_clock::time_point ini_t;
   
 public:
@@ -36,7 +36,7 @@ public:
     ).count();
   };
   
-  inline void playAudio (const AudioPacket &ap) {audio_stream.pushSamples(ap);};
+  inline void playAudio (const gb::AudioPacket &ap) {audio_stream.pushSamples(ap);};
 
   auto& getAudioStream () {return audio_stream;}
 };

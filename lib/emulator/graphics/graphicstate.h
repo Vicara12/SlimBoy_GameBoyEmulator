@@ -8,6 +8,8 @@
 #include "types.h"
 
 
+namespace gb {
+
 // Timing constants
 inline constexpr uint DOTS_PER_FRAME = 70224;
 inline constexpr uint DOTS_PER_LINE  = 456;
@@ -76,3 +78,5 @@ constexpr std::array<uint16_t, 256> generateInterleaveLUT() {
 }
 
 static constexpr auto INTERLEAVE_LUT = generateInterleaveLUT();
+
+} // namespace gb

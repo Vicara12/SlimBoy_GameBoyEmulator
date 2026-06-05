@@ -2,6 +2,9 @@
 
 #include "types.h"
 
+
+namespace gb {
+
 inline constexpr ulong CLOCK_FREQ = 4194304;
 
 
@@ -23,3 +26,5 @@ struct Timing {
   ulong t_last_emu_rate = 0;
   ulong cycles = 0; // Total execution cycles (execution clock)
 };
+
+} // namespace gb

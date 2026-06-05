@@ -7,6 +7,8 @@
 #include "state.h"
 
 
+namespace gb {
+
 inline void setPostBootState (State &state) {
   state.A = 0x01;
   state.B = 0x00;
@@ -36,3 +38,5 @@ inline void setPostBootState (State &state) {
     state.memory.f(0xFF00 + i) = initial_io_registers[i];
   }
 }
+
+} // namespace gb

@@ -7,6 +7,9 @@
 #include "state.h"
 #include "cpu/interrupts.h"
 
+
+namespace gb {
+
 // JP nn: jump to 16 bit address nn
 inline int instr_JP_nn (Byte lsb, Byte msb, State &state)
 {
@@ -103,3 +106,5 @@ inline int instr_RETI (State &state)
   state.ime = true; // Activate interrupts
   return instr_RET(state);
 }
+
+} // namespace gb

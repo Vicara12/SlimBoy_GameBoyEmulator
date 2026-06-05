@@ -23,7 +23,7 @@ public:
     initialize(2, sr);
   }
 
-  inline void pushSamples(const AudioPacket &new_samples) {
+  inline void pushSamples(const gb::AudioPacket &new_samples) {
     if (new_samples.buffer_l.size() != new_samples.buffer_r.size()) {
       std::cerr << "ERROR: L & R sound channels buffer size mismatch" << std::endl;
     }
@@ -51,7 +51,7 @@ protected:
     size_t r = read_idx.load(std::memory_order_relaxed);
     if (w != r) {
       // Return a maximum of one sound buffer so as to not drain the margin in the audio queue
-      size_t to_read = std::min(w - r, size_t(AUDIO_BUFFER_SIZE));
+      size_t to_read = std::min(w - r, size_t(gb::AUDIO_BUFFER_SIZE));
       playing_chunk.resize(to_read);
 
       for (size_t i = 0; i < playing_chunk.size(); i++) {
@@ -59,7 +59,7 @@ protected:
       }
       read_idx.store(r + to_read, std::memory_order_release);
     } else {
-      playing_chunk.assign(AUDIO_BUFFER_SIZE, -32768);
+      playing_chunk.assign(gb::AUDIO_BUFFER_SIZE, -32768);
     }
 
     data.samples = playing_chunk.data();
