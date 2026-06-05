@@ -7,9 +7,9 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include "types.h"
-#include "instructions/instructiondefines.h"
-#include "instructions/instruction.h"
+#include "../types.h"
+#include "../instructions/instructiondefines.h"
+#include "../instructions/instruction.h"
 
 
 namespace gb {

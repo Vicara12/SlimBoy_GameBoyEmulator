@@ -4,7 +4,7 @@
 * Code for several instructions that don't belong to a particular class.
 */
 
-#include "state.h"
+#include "../state.h"
 #include "instructiondefines.h"
 
 

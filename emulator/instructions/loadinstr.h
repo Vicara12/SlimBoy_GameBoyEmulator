@@ -4,9 +4,9 @@
 * Code for all the memory instructions (LD, PUSH, POP)
 */
 
-#include "memory/memory.h"
+#include "../memory/memory.h"
 #include "instructiondefines.h"
-#include "state.h"
+#include "../state.h"
 
 
 namespace gb {

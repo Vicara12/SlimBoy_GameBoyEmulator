@@ -1,14 +1,14 @@
 #pragma once
 
 #include <cstdint>
-#include "state.h"
-#include "cpu/interrupts.h"
-#include "instructions/instruction.h"
-#include "instructions/loadinstr.h"
-#include "instructions/artihmeticinstr.h"
-#include "instructions/bitarithmeticinstr.h"
-#include "instructions/miscinstr.h"
-#include "instructions/flowctrlinstr.h"
+#include "../state.h"
+#include "../cpu/interrupts.h"
+#include "instruction.h"
+#include "loadinstr.h"
+#include "artihmeticinstr.h"
+#include "bitarithmeticinstr.h"
+#include "miscinstr.h"
+#include "flowctrlinstr.h"
 
 
 namespace gb {
@@ -300,261 +300,261 @@ inline int executeCBInstruction (Byte opcode, State &state)
   case 0x7F:
     return instr_BIT_b_r</*b =*/7>(state.A,state);
   case 0x80:
-    return instr_RES_b_r</*b =*/0>(state.B,state);
+    return instr_RES_b_r</*b =*/0>(state.B);
   case 0x81:
-    return instr_RES_b_r</*b =*/0>(state.C,state);
+    return instr_RES_b_r</*b =*/0>(state.C);
   case 0x82:
-    return instr_RES_b_r</*b =*/0>(state.D,state);
+    return instr_RES_b_r</*b =*/0>(state.D);
   case 0x83:
-    return instr_RES_b_r</*b =*/0>(state.E,state);
+    return instr_RES_b_r</*b =*/0>(state.E);
   case 0x84:
-    return instr_RES_b_r</*b =*/0>(state.H,state);
+    return instr_RES_b_r</*b =*/0>(state.H);
   case 0x85:
-    return instr_RES_b_r</*b =*/0>(state.L,state);
+    return instr_RES_b_r</*b =*/0>(state.L);
   case 0x86:
     return instr_RES_b_mem_HL</*b =*/0>(state);
   case 0x87:
-    return instr_RES_b_r</*b =*/0>(state.A,state);
+    return instr_RES_b_r</*b =*/0>(state.A);
   case 0x88:
-    return instr_RES_b_r</*b =*/1>(state.B,state);
+    return instr_RES_b_r</*b =*/1>(state.B);
   case 0x89:
-    return instr_RES_b_r</*b =*/1>(state.C,state);
+    return instr_RES_b_r</*b =*/1>(state.C);
   case 0x8A:
-    return instr_RES_b_r</*b =*/1>(state.D,state);
+    return instr_RES_b_r</*b =*/1>(state.D);
   case 0x8B:
-    return instr_RES_b_r</*b =*/1>(state.E,state);
+    return instr_RES_b_r</*b =*/1>(state.E);
   case 0x8C:
-    return instr_RES_b_r</*b =*/1>(state.H,state);
+    return instr_RES_b_r</*b =*/1>(state.H);
   case 0x8D:
-    return instr_RES_b_r</*b =*/1>(state.L,state);
+    return instr_RES_b_r</*b =*/1>(state.L);
   case 0x8E:
     return instr_RES_b_mem_HL</*b =*/1>(state);
   case 0x8F:
-    return instr_RES_b_r</*b =*/1>(state.A,state);
+    return instr_RES_b_r</*b =*/1>(state.A);
   case 0x90:
-    return instr_RES_b_r</*b =*/2>(state.B,state);
+    return instr_RES_b_r</*b =*/2>(state.B);
   case 0x91:
-    return instr_RES_b_r</*b =*/2>(state.C,state);
+    return instr_RES_b_r</*b =*/2>(state.C);
   case 0x92:
-    return instr_RES_b_r</*b =*/2>(state.D,state);
+    return instr_RES_b_r</*b =*/2>(state.D);
   case 0x93:
-    return instr_RES_b_r</*b =*/2>(state.E,state);
+    return instr_RES_b_r</*b =*/2>(state.E);
   case 0x94:
-    return instr_RES_b_r</*b =*/2>(state.H,state);
+    return instr_RES_b_r</*b =*/2>(state.H);
   case 0x95:
-    return instr_RES_b_r</*b =*/2>(state.L,state);
+    return instr_RES_b_r</*b =*/2>(state.L);
   case 0x96:
     return instr_RES_b_mem_HL</*b =*/2>(state);
   case 0x97:
-    return instr_RES_b_r</*b =*/2>(state.A,state);
+    return instr_RES_b_r</*b =*/2>(state.A);
   case 0x98:
-    return instr_RES_b_r</*b =*/3>(state.B,state);
+    return instr_RES_b_r</*b =*/3>(state.B);
   case 0x99:
-    return instr_RES_b_r</*b =*/3>(state.C,state);
+    return instr_RES_b_r</*b =*/3>(state.C);
   case 0x9A:
-    return instr_RES_b_r</*b =*/3>(state.D,state);
+    return instr_RES_b_r</*b =*/3>(state.D);
   case 0x9B:
-    return instr_RES_b_r</*b =*/3>(state.E,state);
+    return instr_RES_b_r</*b =*/3>(state.E);
   case 0x9C:
-    return instr_RES_b_r</*b =*/3>(state.H,state);
+    return instr_RES_b_r</*b =*/3>(state.H);
   case 0x9D:
-    return instr_RES_b_r</*b =*/3>(state.L,state);
+    return instr_RES_b_r</*b =*/3>(state.L);
   case 0x9E:
     return instr_RES_b_mem_HL</*b =*/3>(state);
   case 0x9F:
-    return instr_RES_b_r</*b =*/3>(state.A,state);
+    return instr_RES_b_r</*b =*/3>(state.A);
   case 0xA0:
-    return instr_RES_b_r</*b =*/4>(state.B,state);
+    return instr_RES_b_r</*b =*/4>(state.B);
   case 0xA1:
-    return instr_RES_b_r</*b =*/4>(state.C,state);
+    return instr_RES_b_r</*b =*/4>(state.C);
   case 0xA2:
-    return instr_RES_b_r</*b =*/4>(state.D,state);
+    return instr_RES_b_r</*b =*/4>(state.D);
   case 0xA3:
-    return instr_RES_b_r</*b =*/4>(state.E,state);
+    return instr_RES_b_r</*b =*/4>(state.E);
   case 0xA4:
-    return instr_RES_b_r</*b =*/4>(state.H,state);
+    return instr_RES_b_r</*b =*/4>(state.H);
   case 0xA5:
-    return instr_RES_b_r</*b =*/4>(state.L,state);
+    return instr_RES_b_r</*b =*/4>(state.L);
   case 0xA6:
     return instr_RES_b_mem_HL</*b =*/4>(state);
   case 0xA7:
-    return instr_RES_b_r</*b =*/4>(state.A,state);
+    return instr_RES_b_r</*b =*/4>(state.A);
   case 0xA8:
-    return instr_RES_b_r</*b =*/5>(state.B,state);
+    return instr_RES_b_r</*b =*/5>(state.B);
   case 0xA9:
-    return instr_RES_b_r</*b =*/5>(state.C,state);
+    return instr_RES_b_r</*b =*/5>(state.C);
   case 0xAA:
-    return instr_RES_b_r</*b =*/5>(state.D,state);
+    return instr_RES_b_r</*b =*/5>(state.D);
   case 0xAB:
-    return instr_RES_b_r</*b =*/5>(state.E,state);
+    return instr_RES_b_r</*b =*/5>(state.E);
   case 0xAC:
-    return instr_RES_b_r</*b =*/5>(state.H,state);
+    return instr_RES_b_r</*b =*/5>(state.H);
   case 0xAD:
-    return instr_RES_b_r</*b =*/5>(state.L,state);
+    return instr_RES_b_r</*b =*/5>(state.L);
   case 0xAE:
     return instr_RES_b_mem_HL</*b =*/5>(state);
   case 0xAF:
-    return instr_RES_b_r</*b =*/5>(state.A,state);
+    return instr_RES_b_r</*b =*/5>(state.A);
   case 0xB0:
-    return instr_RES_b_r</*b =*/6>(state.B,state);
+    return instr_RES_b_r</*b =*/6>(state.B);
   case 0xB1:
-    return instr_RES_b_r</*b =*/6>(state.C,state);
+    return instr_RES_b_r</*b =*/6>(state.C);
   case 0xB2:
-    return instr_RES_b_r</*b =*/6>(state.D,state);
+    return instr_RES_b_r</*b =*/6>(state.D);
   case 0xB3:
-    return instr_RES_b_r</*b =*/6>(state.E,state);
+    return instr_RES_b_r</*b =*/6>(state.E);
   case 0xB4:
-    return instr_RES_b_r</*b =*/6>(state.H,state);
+    return instr_RES_b_r</*b =*/6>(state.H);
   case 0xB5:
-    return instr_RES_b_r</*b =*/6>(state.L,state);
+    return instr_RES_b_r</*b =*/6>(state.L);
   case 0xB6:
     return instr_RES_b_mem_HL</*b =*/6>(state);
   case 0xB7:
-    return instr_RES_b_r</*b =*/6>(state.A,state);
+    return instr_RES_b_r</*b =*/6>(state.A);
   case 0xB8:
-    return instr_RES_b_r</*b =*/7>(state.B,state);
+    return instr_RES_b_r</*b =*/7>(state.B);
   case 0xB9:
-    return instr_RES_b_r</*b =*/7>(state.C,state);
+    return instr_RES_b_r</*b =*/7>(state.C);
   case 0xBA:
-    return instr_RES_b_r</*b =*/7>(state.D,state);
+    return instr_RES_b_r</*b =*/7>(state.D);
   case 0xBB:
-    return instr_RES_b_r</*b =*/7>(state.E,state);
+    return instr_RES_b_r</*b =*/7>(state.E);
   case 0xBC:
-    return instr_RES_b_r</*b =*/7>(state.H,state);
+    return instr_RES_b_r</*b =*/7>(state.H);
   case 0xBD:
-    return instr_RES_b_r</*b =*/7>(state.L,state);
+    return instr_RES_b_r</*b =*/7>(state.L);
   case 0xBE:
     return instr_RES_b_mem_HL</*b =*/7>(state);
   case 0xBF:
-    return instr_RES_b_r</*b =*/7>(state.A,state);
+    return instr_RES_b_r</*b =*/7>(state.A);
   case 0xC0:
-    return instr_SET_b_r</*b =*/0>(state.B,state);
+    return instr_SET_b_r</*b =*/0>(state.B);
   case 0xC1:
-    return instr_SET_b_r</*b =*/0>(state.C,state);
+    return instr_SET_b_r</*b =*/0>(state.C);
   case 0xC2:
-    return instr_SET_b_r</*b =*/0>(state.D,state);
+    return instr_SET_b_r</*b =*/0>(state.D);
   case 0xC3:
-    return instr_SET_b_r</*b =*/0>(state.E,state);
+    return instr_SET_b_r</*b =*/0>(state.E);
   case 0xC4:
-    return instr_SET_b_r</*b =*/0>(state.H,state);
+    return instr_SET_b_r</*b =*/0>(state.H);
   case 0xC5:
-    return instr_SET_b_r</*b =*/0>(state.L,state);
+    return instr_SET_b_r</*b =*/0>(state.L);
   case 0xC6:
     return instr_SET_b_mem_HL</*b =*/0>(state);
   case 0xC7:
-    return instr_SET_b_r</*b =*/0>(state.A,state);
+    return instr_SET_b_r</*b =*/0>(state.A);
   case 0xC8:
-    return instr_SET_b_r</*b =*/1>(state.B,state);
+    return instr_SET_b_r</*b =*/1>(state.B);
   case 0xC9:
-    return instr_SET_b_r</*b =*/1>(state.C,state);
+    return instr_SET_b_r</*b =*/1>(state.C);
   case 0xCA:
-    return instr_SET_b_r</*b =*/1>(state.D,state);
+    return instr_SET_b_r</*b =*/1>(state.D);
   case 0xCB:
-    return instr_SET_b_r</*b =*/1>(state.E,state);
+    return instr_SET_b_r</*b =*/1>(state.E);
   case 0xCC:
-    return instr_SET_b_r</*b =*/1>(state.H,state);
+    return instr_SET_b_r</*b =*/1>(state.H);
   case 0xCD:
-    return instr_SET_b_r</*b =*/1>(state.L,state);
+    return instr_SET_b_r</*b =*/1>(state.L);
   case 0xCE:
     return instr_SET_b_mem_HL</*b =*/1>(state);
   case 0xCF:
-    return instr_SET_b_r</*b =*/1>(state.A,state);
+    return instr_SET_b_r</*b =*/1>(state.A);
   case 0xD0:
-    return instr_SET_b_r</*b =*/2>(state.B,state);
+    return instr_SET_b_r</*b =*/2>(state.B);
   case 0xD1:
-    return instr_SET_b_r</*b =*/2>(state.C,state);
+    return instr_SET_b_r</*b =*/2>(state.C);
   case 0xD2:
-    return instr_SET_b_r</*b =*/2>(state.D,state);
+    return instr_SET_b_r</*b =*/2>(state.D);
   case 0xD3:
-    return instr_SET_b_r</*b =*/2>(state.E,state);
+    return instr_SET_b_r</*b =*/2>(state.E);
   case 0xD4:
-    return instr_SET_b_r</*b =*/2>(state.H,state);
+    return instr_SET_b_r</*b =*/2>(state.H);
   case 0xD5:
-    return instr_SET_b_r</*b =*/2>(state.L,state);
+    return instr_SET_b_r</*b =*/2>(state.L);
   case 0xD6:
     return instr_SET_b_mem_HL</*b =*/2>(state);
   case 0xD7:
-    return instr_SET_b_r</*b =*/2>(state.A,state);
+    return instr_SET_b_r</*b =*/2>(state.A);
   case 0xD8:
-    return instr_SET_b_r</*b =*/3>(state.B,state);
+    return instr_SET_b_r</*b =*/3>(state.B);
   case 0xD9:
-    return instr_SET_b_r</*b =*/3>(state.C,state);
+    return instr_SET_b_r</*b =*/3>(state.C);
   case 0xDA:
-    return instr_SET_b_r</*b =*/3>(state.D,state);
+    return instr_SET_b_r</*b =*/3>(state.D);
   case 0xDB:
-    return instr_SET_b_r</*b =*/3>(state.E,state);
+    return instr_SET_b_r</*b =*/3>(state.E);
   case 0xDC:
-    return instr_SET_b_r</*b =*/3>(state.H,state);
+    return instr_SET_b_r</*b =*/3>(state.H);
   case 0xDD:
-    return instr_SET_b_r</*b =*/3>(state.L,state);
+    return instr_SET_b_r</*b =*/3>(state.L);
   case 0xDE:
     return instr_SET_b_mem_HL</*b =*/3>(state);
   case 0xDF:
-    return instr_SET_b_r</*b =*/3>(state.A,state);
+    return instr_SET_b_r</*b =*/3>(state.A);
   case 0xE0:
-    return instr_SET_b_r</*b =*/4>(state.B,state);
+    return instr_SET_b_r</*b =*/4>(state.B);
   case 0xE1:
-    return instr_SET_b_r</*b =*/4>(state.C,state);
+    return instr_SET_b_r</*b =*/4>(state.C);
   case 0xE2:
-    return instr_SET_b_r</*b =*/4>(state.D,state);
+    return instr_SET_b_r</*b =*/4>(state.D);
   case 0xE3:
-    return instr_SET_b_r</*b =*/4>(state.E,state);
+    return instr_SET_b_r</*b =*/4>(state.E);
   case 0xE4:
-    return instr_SET_b_r</*b =*/4>(state.H,state);
+    return instr_SET_b_r</*b =*/4>(state.H);
   case 0xE5:
-    return instr_SET_b_r</*b =*/4>(state.L,state);
+    return instr_SET_b_r</*b =*/4>(state.L);
   case 0xE6:
     return instr_SET_b_mem_HL</*b =*/4>(state);
   case 0xE7:
-    return instr_SET_b_r</*b =*/4>(state.A,state);
+    return instr_SET_b_r</*b =*/4>(state.A);
   case 0xE8:
-    return instr_SET_b_r</*b =*/5>(state.B,state);
+    return instr_SET_b_r</*b =*/5>(state.B);
   case 0xE9:
-    return instr_SET_b_r</*b =*/5>(state.C,state);
+    return instr_SET_b_r</*b =*/5>(state.C);
   case 0xEA:
-    return instr_SET_b_r</*b =*/5>(state.D,state);
+    return instr_SET_b_r</*b =*/5>(state.D);
   case 0xEB:
-    return instr_SET_b_r</*b =*/5>(state.E,state);
+    return instr_SET_b_r</*b =*/5>(state.E);
   case 0xEC:
-    return instr_SET_b_r</*b =*/5>(state.H,state);
+    return instr_SET_b_r</*b =*/5>(state.H);
   case 0xED:
-    return instr_SET_b_r</*b =*/5>(state.L,state);
+    return instr_SET_b_r</*b =*/5>(state.L);
   case 0xEE:
     return instr_SET_b_mem_HL</*b =*/5>(state);
   case 0xEF:
-    return instr_SET_b_r</*b =*/5>(state.A,state);
+    return instr_SET_b_r</*b =*/5>(state.A);
   case 0xF0:
-    return instr_SET_b_r</*b =*/6>(state.B,state);
+    return instr_SET_b_r</*b =*/6>(state.B);
   case 0xF1:
-    return instr_SET_b_r</*b =*/6>(state.C,state);
+    return instr_SET_b_r</*b =*/6>(state.C);
   case 0xF2:
-    return instr_SET_b_r</*b =*/6>(state.D,state);
+    return instr_SET_b_r</*b =*/6>(state.D);
   case 0xF3:
-    return instr_SET_b_r</*b =*/6>(state.E,state);
+    return instr_SET_b_r</*b =*/6>(state.E);
   case 0xF4:
-    return instr_SET_b_r</*b =*/6>(state.H,state);
+    return instr_SET_b_r</*b =*/6>(state.H);
   case 0xF5:
-    return instr_SET_b_r</*b =*/6>(state.L,state);
+    return instr_SET_b_r</*b =*/6>(state.L);
   case 0xF6:
     return instr_SET_b_mem_HL</*b =*/6>(state);
   case 0xF7:
-    return instr_SET_b_r</*b =*/6>(state.A,state);
+    return instr_SET_b_r</*b =*/6>(state.A);
   case 0xF8:
-    return instr_SET_b_r</*b =*/7>(state.B,state);
+    return instr_SET_b_r</*b =*/7>(state.B);
   case 0xF9:
-    return instr_SET_b_r</*b =*/7>(state.C,state);
+    return instr_SET_b_r</*b =*/7>(state.C);
   case 0xFA:
-    return instr_SET_b_r</*b =*/7>(state.D,state);
+    return instr_SET_b_r</*b =*/7>(state.D);
   case 0xFB:
-    return instr_SET_b_r</*b =*/7>(state.E,state);
+    return instr_SET_b_r</*b =*/7>(state.E);
   case 0xFC:
-    return instr_SET_b_r</*b =*/7>(state.H,state);
+    return instr_SET_b_r</*b =*/7>(state.H);
   case 0xFD:
-    return instr_SET_b_r</*b =*/7>(state.L,state);
+    return instr_SET_b_r</*b =*/7>(state.L);
   case 0xFE:
     return instr_SET_b_mem_HL</*b =*/7>(state);
   case 0xFF:
-    return instr_SET_b_r</*b =*/7>(state.A,state);
+    return instr_SET_b_r</*b =*/7>(state.A);
   default:
     return -1;
   }

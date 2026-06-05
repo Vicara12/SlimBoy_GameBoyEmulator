@@ -39,7 +39,7 @@ void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorCon
     }
     execute<InterfaceT, debug>(*state, interface);
     if (cart_info.hardware.battery) {
-      interface.saveRAM(std::move(state->memory.copyRAM()));
+      interface.saveRAM(state->memory.copyRAM());
     }
     delete state;
     interface.informEmulationEnded();

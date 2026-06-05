@@ -5,12 +5,12 @@
 #pragma once
 
 #include <utility>
-#include "state.h"
-#include "interface.h"
-#include "utils/debuginstr.h"
-#include "instructions/instruction.h"
-#include "graphics/graphics.h"
-#include "audio/audio.h"
+#include "../state.h"
+#include "../interface.h"
+#include "../utils/debuginstr.h"
+#include "../instructions/instruction.h"
+#include "../graphics/graphics.h"
+#include "../audio/audio.h"
 #include "buttoninputs.h"
 #include "timing.h"
 
@@ -39,7 +39,7 @@ void execute (State &state, InterfaceT &interface) {
     do {
       // This is here so that emulator doesn't freeze on stop
       state.end_emulation = interface.endEmulation();
-      updateButtons(n_instrs, state, interface);
+      updateButtons(state, interface);
       if (state.stopped) {
         interface.sleepMillis(10);
         state.memory.w(Addr::DIV, 0); // Write something to DIV so that it resets

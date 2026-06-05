@@ -4,9 +4,9 @@
 * Code for all the bit arithmetic instructions
 */
 
-#include "state.h"
+#include "../state.h"
 #include "instructiondefines.h"
-#include "memory/memory.h"
+#include "../memory/memory.h"
 
 
 namespace gb {
@@ -238,7 +238,7 @@ inline int instr_BIT_b_mem_HL (State &state)
 
 // SET b, r: set bit b in register r
 template<int b>
-inline int instr_SET_b_r (Reg &reg, State &state)
+inline int instr_SET_b_r (Reg &reg)
 {
   constexpr Byte bit_mask = 1 << b;
   reg |= bit_mask;
@@ -251,14 +251,14 @@ inline int instr_SET_b_mem_HL (State &state)
 {
   DReg HL = REG_HL(state);
   Reg val = state.memory.r(HL);
-  instr_SET_b_r<b>(val, state);
+  instr_SET_b_r<b>(val);
   state.memory.w(HL, val);
   return 16;
 }
 
 // RES b, r: reset bit b in register r
 template<int b>
-inline int instr_RES_b_r (Reg &reg, State &state)
+inline int instr_RES_b_r (Reg &reg)
 {
   constexpr Byte bit_mask = Byte(~(1 << b));
   reg &= bit_mask;
@@ -271,7 +271,7 @@ inline int instr_RES_b_mem_HL (State &state)
 {
   DReg HL = REG_HL(state);
   Reg val = state.memory.r(HL);
-  instr_RES_b_r<b>(val, state);
+  instr_RES_b_r<b>(val);
   state.memory.w(HL, val);
   return 16;
 }

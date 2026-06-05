@@ -3,10 +3,10 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
-#include "utils/debuginstr.h"
-#include "interface.h"
-#include "state.h"
-#include "types.h"
+#include "../utils/debuginstr.h"
+#include "../interface.h"
+#include "../state.h"
+#include "../types.h"
 
 
 namespace gb {

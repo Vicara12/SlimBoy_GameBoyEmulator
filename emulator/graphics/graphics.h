@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "types.h"
-#include "state.h"
-#include "interface.h"
-#include "graphics/graphicstate.h"
+#include "../types.h"
+#include "../state.h"
+#include "../interface.h"
+#include "graphicstate.h"
 #include <cstring>
 
 
@@ -245,7 +245,6 @@ void renderLineBGW (Byte line_n, ScreenLineData &bg_line, ScreenLineData &bgw_li
   if (isWinEnabled(state) and wy <= line_n) {
     scx_right = scx + std::max(0, std::min(wx, int(SCREEN_PX_W + 7)) - 7);
   }
-  int n_bg_px = scx_right - scx;
   int px_idx = scx;
   Byte *bg_line_ptr = &(bg_line[0]);
   Byte *bg_line_idcs_ptr = &(bgw_line_idcs[0]);

@@ -4,8 +4,8 @@
 * Code for all the arithmetic instructions
 */
 
-#include "state.h"
-#include "memory/memory.h"
+#include "../state.h"
+#include "../memory/memory.h"
 
 
 namespace gb {

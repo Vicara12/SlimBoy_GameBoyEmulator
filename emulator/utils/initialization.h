@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "state.h"
+#include "../state.h"
 
 
 namespace gb {

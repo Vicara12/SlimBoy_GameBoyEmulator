@@ -6,8 +6,8 @@
 
 #include <vector>
 #include <optional>
-#include "types.h"
-#include "cpu/timingstate.h"
+#include "../types.h"
+#include "../cpu/timingstate.h"
 
 
 namespace gb {
@@ -86,8 +86,8 @@ public:
 
   struct CartHardware {
     Memory::CtrlType controller;
-    int n_rom_banks = 0;
-    int n_ram_banks = 0;
+    uint n_rom_banks = 0;
+    uint n_ram_banks = 0;
     bool ram = false;
     bool battery = false;
     bool timer = false;
@@ -284,7 +284,7 @@ public:
     game_boot_rom = std::array<Byte,0x0100>();
     // Need to use pointers because otherwise it creates a temporal object which overflows the stack
     initBlockVec(rom_bank, 2*hardware.n_rom_banks); // A ROM bank is 16kb, but a memory block is 8kb
-    initBlockVec(ram_bank, std::max(hardware.n_ram_banks,1));
+    initBlockVec(ram_bank, std::max(hardware.n_ram_banks,1u));
 
     // ROM bank 0
     memory[0] = rom_bank[0];

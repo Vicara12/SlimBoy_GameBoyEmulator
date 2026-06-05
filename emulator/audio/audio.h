@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include "audiostate.h"
-#include "interface.h"
-#include "state.h"
-#include "types.h"
+#include "../interface.h"
+#include "../state.h"
+#include "../types.h"
 
 
 namespace gb {

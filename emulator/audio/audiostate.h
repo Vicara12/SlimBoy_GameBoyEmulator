@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <limits>
-#include "types.h"
-#include "cpu/timingstate.h"
+#include "../types.h"
+#include "../cpu/timingstate.h"
 
 
 namespace gb {

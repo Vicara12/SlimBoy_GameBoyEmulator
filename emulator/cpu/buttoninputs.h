@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types.h"
-#include "state.h"
+#include "../types.h"
+#include "../state.h"
 #include "interrupts.h"
 
 
@@ -20,7 +20,7 @@ enum class Button : Byte {
 
 
 template<class InterfaceT>
-inline void updateButtons (ulong n_instrs, State &state, InterfaceT &interface) {
+inline void updateButtons (State &state, InterfaceT &interface) {
   if (not (state.memory.specialAddrWritten(Addr::P1) or state.stopped)) {
     return;
   }

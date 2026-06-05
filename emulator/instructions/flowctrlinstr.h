@@ -4,8 +4,8 @@
 * Code for all the flow control instructions
 */
 
-#include "state.h"
-#include "cpu/interrupts.h"
+#include "../state.h"
+#include "../cpu/interrupts.h"
 
 
 namespace gb {
