@@ -1,7 +1,3 @@
-
-// #define PROFILE // TODO remove
-#include "utils/profiling.h"
-
 #include <Arduino.h>
 #include <vector>
 #include "SPIFFS.h"

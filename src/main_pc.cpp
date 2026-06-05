@@ -21,7 +21,7 @@ int main (int argc, char **argv) {
   }
   EmulatorConfig config = {
     .synch_execution = true,
-    .skip_boot_room = true
+    .skip_boot_room = false
   };
   sf::RenderWindow window = createWindow(PX_WIDTH);
   PCInterface interface;

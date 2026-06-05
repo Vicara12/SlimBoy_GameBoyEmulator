@@ -142,6 +142,9 @@ private:
   std::vector<MemBlock*> ram_bank;
   Byte rom_bank_idx_low = 1; // Lower 5 bits of rom bank
   Byte rom_ram_bank_idx = 0; // Upper 2 bits of rom bank or ram bank idx
+  Byte prev_latch_clk_data_val = 3;
+  Byte rtc_reg = 0x00;
+  std::array<Byte,5> rtc_vals = {0};
   bool ram_mode_select = false;
   bool ram_enabled = false;
   bool vram_w_enabled = false;
@@ -160,7 +163,7 @@ private:
   }
 
 
-  inline void changeMemoryBanks (Short addr, Byte data) {
+  inline void changeMemoryBankMBC1 (Short addr, Byte data) {
     // RAM enable
     if (addr < 0x2000) {
       ram_enabled = ((data & 0x0F) == 0x0A);
@@ -206,6 +209,39 @@ private:
   }
 
 
+  inline void changeMemoryBankMBC3 (Short addr, Byte data) {
+    // RAM enable
+    if (addr < 0x2000) {
+      ram_enabled = ((data & 0x0F) == 0x0A);
+    }
+    // ROM bank number
+    else if (addr < 0x4000) {
+      data &= 0x7F;
+      data += (data == 0); // If 0 increment by one
+      rom_bank_idx_low = data % hardware.n_rom_banks;
+    }
+    // RAM bank number
+    else if (addr < 0x6000) {
+      rtc_reg = data;
+      if (hardware.n_ram_banks != 0) rom_ram_bank_idx = (data & 0x03) % hardware.n_ram_banks;
+      else                           rom_ram_bank_idx = 0;
+    }
+    // Latch cartridge time to registers
+    else {
+      if (prev_latch_clk_data_val == 0 and data == 1) {
+        // TODO latch data
+      }
+      prev_latch_clk_data_val = data;
+    }
+    
+    // Hook high ROM bank
+    memory[2] = rom_bank[2*rom_bank_idx_low];
+    memory[3] = rom_bank[2*rom_bank_idx_low + 1];
+    // Hook RAM bank
+    memory[Addr::ExtRAM/MEM_BLOCK_SIZE] = ram_bank[rom_ram_bank_idx];
+  }
+
+
   inline void initBlockVec (std::vector<MemBlock*> &v, size_t n_elms) {
     v.resize(n_elms);
     for (size_t i = 0; i < n_elms; i++) {
@@ -235,7 +271,8 @@ public:
   inline void initialize (const std::vector<Byte> &game_rom, const CartHardware &hardware) {
     if (
       hardware.controller != CtrlType::None and
-      hardware.controller != CtrlType::MBC1
+      hardware.controller != CtrlType::MBC1 and
+      hardware.controller != CtrlType::MBC3
     ) {
       throw std::runtime_error(
         "Bank controller type " + ctrlTypeToStr(hardware.controller) + " is not implemented"
@@ -309,14 +346,20 @@ public:
 
 
   // Safe read
-  inline Byte r(Short addr) const {return f(addr);}
+  inline Byte r(Short addr) const {
+    if (hardware.controller == CtrlType::MBC3 and addr >= 0xA000 and addr <= 0xBFFF and rtc_reg > 0x7) {
+      return rtc_vals[rtc_reg - 8];
+    }
+    return f(addr);
+  }
 
 
   // Safe write
   inline void w(Short addr, Byte data) {
     // Prevent writing to ROM
     if (addr < 0x8000) {
-      changeMemoryBanks(addr, data);
+      if      (hardware.controller == CtrlType::MBC1) changeMemoryBankMBC1(addr, data);
+      else if (hardware.controller == CtrlType::MBC3) changeMemoryBankMBC3(addr, data);
       return;
     }
     // If write in locked video memory region do not write
@@ -330,7 +373,14 @@ public:
       return;
     }
 
-    f(addr) = data;
+    // Check RTC write
+    if (hardware.controller == CtrlType::MBC3 and addr >= 0xA000 and addr <= 0xBFFF and rtc_reg > 0x7) {
+      rtc_vals[rtc_reg - 8] = data;
+      // TODO update values
+    } else {
+      f(addr) = data;
+    }
+    // Special registers
     if (addr >= 0xFF00) {
       special_addr_written[addr & 0xFF] = true;
       if      (addr == Addr::LCDC) {lcd_enabled = ((data & 0x80) != 0);}
