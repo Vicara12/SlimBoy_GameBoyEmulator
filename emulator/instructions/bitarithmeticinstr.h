@@ -215,7 +215,7 @@ inline int instr_SRL_mem_HL (State &state)
 
 // BIT b, r: test bit b in register r
 template <int b>
-inline int instr_BIT_b_r (Reg &reg, State &state)
+inline int instr_BIT_b_r (const Reg &reg, State &state)
 {
   constexpr Byte bit_mask = 1 << b;
   clearFlag<Flag::SUBTRACT>(state);
@@ -230,9 +230,8 @@ template <int b>
 inline int instr_BIT_b_mem_HL (State &state)
 {
   DReg HL = REG_HL(state);
-  Reg val = state.memory.r(HL);
+  const Reg val = state.memory.r(HL);
   instr_BIT_b_r<b>(val, state);
-  state.memory.w(HL, val);
   return 12;
 }
 
