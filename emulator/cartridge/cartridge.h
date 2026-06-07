@@ -27,8 +27,8 @@ inline void printCartridgeInfo (const CartridgeInfo &info, InterfaceT &interface
   interface.println("Version: " + info.version_number);
   interface.println("Dest.: " + std::string(info.japanese ? "Japan" : "Overseas"));
   interface.println("Manufacturer: " + info.manufacturer);
-  interface.println("Num. ROM banks: " + info.hardware.n_rom_banks);
-  interface.println("Num. RAM banks: " + info.hardware.n_ram_banks);
+  interface.println("Num. ROM banks: " + std::to_string(int(info.hardware.n_rom_banks)));
+  interface.println("Num. RAM banks: " + std::to_string(int(info.hardware.n_ram_banks)));
   interface.println(
     "MBC hardware: " + Memory::ctrlTypeToStr(info.hardware.controller) +
     (info.hardware.ram ? " + RAM" : "") + (info.hardware.battery ? " + BATTERY" : "") +

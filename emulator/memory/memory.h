@@ -382,8 +382,15 @@ public:
     } else {
       f(addr) = data;
     }
+    // Check echo ram
+    if (addr >= Addr::WRAM and addr <= Addr::WRAM_end) {
+      f(addr - Addr::WRAM + Addr::EchoRAM) = data;
+    }
+    else if (addr >= Addr::EchoRAM and addr <= Addr::EchoRAM_end) {
+      f(addr - Addr::EchoRAM + Addr::WRAM) = data;
+    }
     // Special registers
-    if (addr >= 0xFF00) {
+    else if (addr >= 0xFF00) {
       special_addr_written[addr & 0xFF] = true;
       if      (addr == Addr::LCDC) {lcd_enabled = ((data & 0x80) != 0);}
       else if (addr == Addr::BANK) {replaceBootRom();}
