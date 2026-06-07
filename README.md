@@ -11,11 +11,11 @@ If you found this project interesting or built something cool with it, please gi
 
 <table>
   <tr>
-    <td><img src="res/tetris.gif" width="300" /></td>
+    <td><img src="res/vrally.gif" width="300" /></td>
     <td><img src="res/pokemon.gif" width="300" /></td>
   </tr>
   <tr>
-    <td align="center"><strong>Tetris</strong></td>
+    <td align="center"><strong>V-Rally Championship</strong></td>
     <td align="center"><strong>Pokémon Red</strong></td>
   </tr>
   <tr>
