@@ -213,8 +213,8 @@ void renderLineOBJ (Byte line_n, ScreenLineData &line, const ScreenLineData &bgw
           Byte px_color = (x_flip ? obj_line[7-j] : obj_line[j]);
           if (px_color != static_cast<Byte>(BWColors::TRANS)) {
             line[n_px] = px_color;
-            px_written[n_px] = obj_x;
           }
+          px_written[n_px] = obj_x;
         }
       }
     }

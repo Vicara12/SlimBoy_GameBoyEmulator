@@ -367,7 +367,7 @@ public:
     // If write in locked video memory region do not write
     if (lcd_enabled and (
         (not vram_w_enabled and addr/MEM_BLOCK_SIZE == 4) or // VRAM is the 4th memory block
-        (not oam_w_enabled  and addr >= 0xFE00 and addr < 0xFEA0))) {
+        (not oam_w_enabled  and addr >= Addr::OAM and addr < Addr::OAM_end))) {
       return;
     }
     // Check write on external RAM (5th memory block)

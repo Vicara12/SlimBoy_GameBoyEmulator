@@ -78,7 +78,7 @@ public:
 ```
 You should implement these functions, as some others are already defined in the base class
 `HardwareInterface`.
-If you want to know more about this design pattern, it is known as the Curiously Recurring Template
+If you want to know more about this design pattern, it is known as the _Curiously Recurring Template
 Pattern_ (CRTP).
 
 

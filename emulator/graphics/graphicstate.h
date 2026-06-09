@@ -14,7 +14,7 @@ namespace gb {
 inline constexpr uint DOTS_PER_FRAME = 70224;
 inline constexpr uint DOTS_PER_LINE  = 456;
 inline constexpr uint DOTS_OAM_SCAN  = 80;
-inline constexpr uint DOTS_DRAW_PX   = 200;
+inline constexpr uint DOTS_DRAW_PX   = 172;
 
 // Screen constants
 inline constexpr uint SCREEN_PX_W     = 160;
