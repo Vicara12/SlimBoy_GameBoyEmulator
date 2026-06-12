@@ -153,6 +153,7 @@ private:
   bool oam_w_enabled = false;
   bool lcd_enabled = false;
   bool initialized = false;
+  bool audio_written = false;
   CartHardware hardware;
   Timing *timing;
 
@@ -405,8 +406,16 @@ public:
         timing->cycles_div_TIMA = getDivFromTAC(data);
         timing->cycles_next_TIMA_inc = timing->cycles;
       }
-
+      else if (addr >= 0xFF10 and addr < 0xFF40) {
+        audio_written = true;
+      }
     }
+  }
+
+  inline bool audioWritten () {
+    bool result = audio_written;
+    audio_written = false;
+    return result;
   }
 
   inline bool specialAddrWritten (Short addr) {

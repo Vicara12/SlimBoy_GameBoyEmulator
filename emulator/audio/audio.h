@@ -226,6 +226,7 @@ inline void checkNewPace (State &state, PulseChannelData &ch_data) {
       Short new_period = period + change;
       if (new_period >= 0x0800) {
         ch_data.on = false;
+        setChxOnOff<AudioChannel::CH1, false>(state);
       } else {
         setChPeriod<AudioChannel::CH1>(state, new_period);
       }
@@ -246,6 +247,7 @@ inline void processPulseChannel (
   if (state.timing.cycles >= ch_data.auto_off_clk) {
     ch_data.auto_off_clk = std::numeric_limits<ulong>::max();
     ch_data.on = false;
+    setChxOnOff<channel, false>(state);
   }
 
   if (not ch_data.on) {
@@ -274,7 +276,10 @@ inline void processPulseChannel (
     if constexpr (channel == AudioChannel::CH1) {
       checkNewPace(state, ch_data);
     }
-    ch_data.signal_value = AUDIO_SEQUENCER[ch_data.duty_idx][ch_data.sequence_idx] * ch_data.volume;
+    // Some games output ultra high frequency notes which are supposed to be inaudible. If that's
+    // the case, filter them
+    if (state.timing.cycles < ch_data.period_overflow_clk)
+      ch_data.signal_value = AUDIO_SEQUENCER[ch_data.duty_idx][ch_data.sequence_idx] * ch_data.volume;
   }
 
   if (panChL<channel>(state)) {
@@ -301,11 +306,13 @@ inline void processWaveChannel (State &state, int &sample_l, int &sample_r) {
   WaveChannelData &ch3 = state.audio.ch3;
   if (not ch3DACEnabled(state)) {
     ch3.on = false;
+    setChxOnOff<AudioChannel::CH3, false>(state);
   }
   else if (state.memory.specialAddrWritten(Addr::NR34)) {
     if (chTriggered<AudioChannel::CH3>(state)) {
       state.memory.f(Addr::NR34) &= 0x7F; // Clear trigger bit
       ch3.on = true;
+      setChxOnOff<AudioChannel::CH3, true>(state);
       ch3.period_overflow_clk = state.timing.cycles;
       ch3.ram_idx = 0;
     }
@@ -318,6 +325,7 @@ inline void processWaveChannel (State &state, int &sample_l, int &sample_r) {
   if (state.timing.cycles >= ch3.auto_off_clk) {
     ch3.auto_off_clk = std::numeric_limits<ulong>::max();
     ch3.on = false;
+    setChxOnOff<AudioChannel::CH3, false>(state);
   }
 
   if (not ch3.on) {
@@ -329,7 +337,10 @@ inline void processWaveChannel (State &state, int &sample_l, int &sample_r) {
     ch3.ram_idx = (ch3.ram_idx+1)%32;
     Byte mem_val = state.memory.f(Addr::WPRAM + ch3.ram_idx/2);
     Byte wave_val = ((ch3.ram_idx % 2) == 0 ? (mem_val >> 4) : (mem_val & 0x0F));
-    ch3.signal_value = (((255/15) * wave_val) >> waveChannelVolumeShift(state));
+    // Some games output ultra high frequency notes which are supposed to be inaudible. If that's
+    // the case, filter them
+    if (state.timing.cycles < ch3.period_overflow_clk)
+      ch3.signal_value = (((255/15) * wave_val) >> waveChannelVolumeShift(state));
   }
 
   if (panChL<AudioChannel::CH3>(state)) {
@@ -345,7 +356,7 @@ inline ulong noiseShiftCycles (State &state) {
   Byte nr43_val = state.memory.f(Addr::NR43);
   ulong shift = (nr43_val >> 4);
   if (shift > 13) {
-    return std::numeric_limits<ulong>::max();
+    return std::numeric_limits<ulong>::max()/8; // Channel is "disabled"
   }
   ulong divider = (nr43_val & 0x07);
   ulong main_freq = 262144;
@@ -374,11 +385,13 @@ inline void noiseChannelState(State &state, NoiseChannelData &ch4) {
   bool NR43_written = state.memory.specialAddrWritten(Addr::NR43);
   if (chZeroVolEnv<AudioChannel::CH4>(state)) {
     ch4.on = false;
+    setChxOnOff<AudioChannel::CH4, false>(state);
   }
   else if (state.memory.specialAddrWritten(Addr::NR44)) {
     if (chTriggered<AudioChannel::CH4>(state)) {
       state.memory.f(Addr::NR44) &= 0x7F; // Clear trigger bit
       ch4.on = true;
+      setChxOnOff<AudioChannel::CH4, true>(state);
       ch4.volume = chVol<AudioChannel::CH4>(state) * 17; // Scale [0,15] -> [0,255]
       ch4.envelope_pace = chEnvelopePace<AudioChannel::CH4>(state);
       ch4.envelope_next_clk = state.timing.cycles + ch4.envelope_pace*(CLOCK_FREQ/64);
@@ -398,6 +411,7 @@ inline void noiseChannelState(State &state, NoiseChannelData &ch4) {
   if (state.timing.cycles >= ch4.auto_off_clk) {
     ch4.auto_off_clk = std::numeric_limits<ulong>::max();
     ch4.on = false;
+    setChxOnOff<AudioChannel::CH4, false>(state);
   }
 }
 
@@ -439,7 +453,7 @@ inline void clearAudioRegs (State &state)
 
 template<class InterfaceT>
 inline void updateAudio (State &state, InterfaceT &interface) {
-  while (state.timing.cycles >= state.audio.cycles_next_push) {
+  while (state.timing.cycles >= state.audio.cycles_next_push or state.memory.audioWritten()) {
     state.audio.cycles_next_push += PUSH_AUDIO_EACH;
 
     if (not audioEnabled(state)) {
