@@ -5,6 +5,8 @@
 #pragma once
 
 #include <vector>
+#include <array>
+#include <memory>
 #include <optional>
 #include "../types.h"
 #include "../cpu/timingstate.h"
