@@ -163,7 +163,7 @@ inline void getTileLine (
 }
 
 
-void renderLineOBJ (Byte line_n, LinePixels &line, const LinePixels &bgw_line_idcs, State &state)
+inline void renderLineOBJ (Byte line_n, LinePixels &line, const LinePixels &bgw_line_idcs, State &state)
 {
   if (not objEnabled(state)) {
     return;
@@ -222,7 +222,7 @@ void renderLineOBJ (Byte line_n, LinePixels &line, const LinePixels &bgw_line_id
 }
 
 
-void renderLineBGW (Byte line_n, LinePixels &bg_line, LinePixels &bgw_line_idcs, State &state)
+inline void renderLineBGW (Byte line_n, LinePixels &bg_line, LinePixels &bgw_line_idcs, State &state)
 {
   // If master BG and Window enable is off return white line
   if (not bgWinEnabled(state)) {
@@ -300,7 +300,7 @@ inline void renderLine (Byte line_n, State &state)
 }
 
 
-void updateMemoryAccess (State &state, ScreenMode mode) {
+inline void updateMemoryAccess (State &state, ScreenMode mode) {
   if (mode != state.screen.last_mode) {
     if (mode == ScreenMode::DRAW) {
       state.memory.setVRAMWriteEnabled(false);
