@@ -5,6 +5,7 @@
 #include <utility>
 #include <mutex>
 #include <vector>
+#include <memory>
 #include "types.h"
 #include "graphics/graphicstate.h"
 #include "audio/audiostate.h"
