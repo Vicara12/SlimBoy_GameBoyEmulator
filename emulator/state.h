@@ -29,7 +29,7 @@ struct State {
   bool stopped = false;
   bool ime = false; // Interrupt Master Enable cpu flag
   Timing timing;
-  ScreenFrame screen;
+  GraphicsState screen;
   AudioState audio;
   float target_speed = 1.0;
   bool end_emulation = false;

@@ -163,7 +163,7 @@ inline void getTileLine (
 }
 
 
-void renderLineOBJ (Byte line_n, ScreenLineData &line, const ScreenLineData &bgw_line_idcs, State &state)
+void renderLineOBJ (Byte line_n, LinePixels &line, const LinePixels &bgw_line_idcs, State &state)
 {
   if (not objEnabled(state)) {
     return;
@@ -222,7 +222,7 @@ void renderLineOBJ (Byte line_n, ScreenLineData &line, const ScreenLineData &bgw
 }
 
 
-void renderLineBGW (Byte line_n, ScreenLineData &bg_line, ScreenLineData &bgw_line_idcs, State &state)
+void renderLineBGW (Byte line_n, LinePixels &bg_line, LinePixels &bgw_line_idcs, State &state)
 {
   // If master BG and Window enable is off return white line
   if (not bgWinEnabled(state)) {
@@ -293,8 +293,8 @@ inline void renderLine (Byte line_n, State &state)
   state.screen.bgw_palette = colorsFromPalette<false>(state.memory.f(Addr::BGP));
   state.screen.obp0_palette = colorsFromPalette<true>(state.memory.f(Addr::OBP0));
   state.screen.obp1_palette = colorsFromPalette<true>(state.memory.f(Addr::OBP1));
-  ScreenLineData &line_data = (*state.screen.line)[line_n].pixel;
-  ScreenLineData bgw_line_idcs;
+  LinePixels &line_data = (*state.screen.pixels)[line_n];
+  LinePixels bgw_line_idcs;
   renderLineBGW(line_n, line_data, bgw_line_idcs, state);
   renderLineOBJ(line_n, line_data, bgw_line_idcs, state);
 }
@@ -335,16 +335,13 @@ inline void updateGraphics (State &state, InterfaceT &interface)
 
   // Check if a new line needs to be rendered
   ulong current_frame = state.timing.cycles/DOTS_PER_FRAME;
-  if (mode == ScreenMode::HBLANK and current_frame != (*state.screen.line)[line_n].frame_last_updated) {
+  if (mode == ScreenMode::HBLANK and current_frame != state.screen.frame_last_updated[line_n]) {
     renderLine(line_n, state);
     // If rendered last line of frame and frame has been rendered from line 0, call screen update
-    if (line_n == SCREEN_PX_H-1 and current_frame == (*state.screen.line)[0].frame_last_updated) {
-      state.screen.line = interface.updateScreen();
-      for (auto &l : *state.screen.line) {
-        l.frame_last_updated = 0;
-      }
+    if (line_n == SCREEN_PX_H-1 and current_frame == state.screen.frame_last_updated[0]) {
+      state.screen.pixels = interface.updateScreen();
     }
-    (*state.screen.line)[line_n].frame_last_updated = current_frame;
+    state.screen.frame_last_updated[line_n] = current_frame;
   }
 }
 

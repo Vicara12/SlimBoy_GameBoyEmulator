@@ -41,23 +41,19 @@ enum class BWColors : Byte {
 
 
 using PaletteColors = std::array<Byte,4>;
-using ScreenLineData = std::array<Byte, SCREEN_PX_W>;
+using LinePixels = std::array<Byte, SCREEN_PX_W>;
+using ScreenPixels = std::array<LinePixels, SCREEN_PX_H>;
 
-struct ScreenLine{
-  ulong frame_last_updated = 0;
-  ScreenLineData pixel;
-};
 
-using ScreenPixels = std::array<ScreenLine, SCREEN_PX_H>;
-
-struct ScreenFrame {
+struct GraphicsState {
   ScreenMode last_mode = ScreenMode::HBLANK;
   bool ly_lyc_flag_already_set = false;
   Byte window_y = 0;
   PaletteColors bgw_palette;
   PaletteColors obp0_palette;
   PaletteColors obp1_palette;
-  ScreenPixels *line;
+  std::array<ulong, SCREEN_PX_H> frame_last_updated = {1};
+  ScreenPixels *pixels;
 };
 
 

@@ -30,7 +30,7 @@ void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorCon
     CartridgeInfo cart_info = loadGame(cartridge_data, *state);
     printCartridgeInfo(cart_info, interface);
     state->target_speed = cfg.synch_execution ? 1 : std::numeric_limits<float>::max();
-    state->screen.line = interface.updateScreen();
+    state->screen.pixels = interface.updateScreen();
     state->memory.hookState(&(state->timing));
     resetAudioBuffers(state->audio);
     if (cfg.skip_boot_room) {

@@ -73,7 +73,7 @@ public:
 
   // PLATFORM SIDE FUNCTIONS
 
-  // This function returns a ScreenFrame, which contains the value of each pixel in an intensity
+  // This function returns a ScreenFrame, a 2D array with the value of each pixel in an intensity
   // scale from 0 to 3, where 0 is white and 3 black. NEVER call delete or free on the returned ptr.
   inline ScreenPixels* getLatestScreen () {
     std::lock_guard<std::mutex> lock(screen_mutex);
