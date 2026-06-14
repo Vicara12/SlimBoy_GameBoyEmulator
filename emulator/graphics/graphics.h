@@ -163,7 +163,7 @@ inline void getTileLine (
 }
 
 
-inline void renderLineOBJ (Byte line_n, LinePixels &line, const LinePixels &bgw_line_idcs, State &state)
+[[gnu::noinline]] inline void renderLineOBJ (Byte line_n, LinePixels &line, const LinePixels &bgw_line_idcs, State &state)
 {
   if (not objEnabled(state)) {
     return;
@@ -222,7 +222,7 @@ inline void renderLineOBJ (Byte line_n, LinePixels &line, const LinePixels &bgw_
 }
 
 
-inline void renderLineBGW (Byte line_n, LinePixels &bg_line, LinePixels &bgw_line_idcs, State &state)
+[[gnu::noinline]] inline void renderLineBGW (Byte line_n, LinePixels &bg_line, LinePixels &bgw_line_idcs, State &state)
 {
   // If master BG and Window enable is off return white line
   if (not bgWinEnabled(state)) {

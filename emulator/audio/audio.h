@@ -236,7 +236,7 @@ inline void checkNewPace (State &state, PulseChannelData &ch_data) {
 
 
 template<AudioChannel channel>
-inline void processPulseChannel (
+[[gnu::noinline]] inline void processPulseChannel (
   State &state,
   PulseChannelData &ch_data,
   int &sample_l,
