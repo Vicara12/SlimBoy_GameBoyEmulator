@@ -30,31 +30,29 @@ inline bool objEnabled (State &state) {return state.memory.f(Addr::LCDC) & 0x02;
 inline bool bgWinEnabled (State &state) {return state.memory.f(Addr::LCDC) & 0x01;}
 
 
-inline ScreenMode getMode (State &state, Byte &current_line)
+inline ScreenMode getMode (State &state)
 {
-  ulong current_dot = state.timing.cycles%DOTS_PER_FRAME;
-  current_line = current_dot/DOTS_PER_LINE;
-  if (current_line >= SCREEN_PX_H) {
+  if (state.screen.current_line >= SCREEN_PX_H) {
     return ScreenMode::VBLANK;
   }
-  ulong dot_in_line = current_dot%DOTS_PER_LINE;
-  if (dot_in_line < DOTS_OAM_SCAN) {
+
+  if (state.screen.current_line_dot < DOTS_OAM_SCAN) {
     return ScreenMode::OAMSC;
   }
-  else if (dot_in_line < DOTS_OAM_SCAN + DOTS_DRAW_PX) {
+  else if (state.screen.current_line_dot < DOTS_OAM_SCAN + DOTS_DRAW_PX) {
     return ScreenMode::DRAW;
   }
   return ScreenMode::HBLANK;
 }
 
 
-inline void setInterrupts (Byte line_n, ScreenMode mode, State &state)
+inline void setInterrupts (ScreenMode mode, State &state)
 {
   Byte stat_value = state.memory.f(Addr::STAT);
 
   // Handle STAT (LCD) interrupts
   // Check if LYC == LY interrupt needs to be triggered
-  if (state.memory.f(Addr::LYC) == line_n) {
+  if (state.memory.f(Addr::LYC) == state.screen.current_line) {
     if ((stat_value & 0x40) != 0 and // LYC int select to 1
         not state.screen.ly_lyc_flag_already_set
         ) {
@@ -81,13 +79,13 @@ inline void setInterrupts (Byte line_n, ScreenMode mode, State &state)
 }
 
 
-inline void updateLCDStatusRegs (Byte line_n, ScreenMode mode, State &state)
+inline void updateLCDStatusRegs (ScreenMode mode, State &state)
 {
   Byte &stat_val = state.memory.f(Addr::STAT);
-  state.memory.f(Addr::LY) = line_n;
+  state.memory.f(Addr::LY) = state.screen.current_line;
   stat_val &= 0xF8; // clear three lsb of stat
   stat_val |= static_cast<Byte>(mode); // update PPU mode to two lsb of stat
-  stat_val |= Byte(state.memory.f(Addr::LYC) == line_n) << 2; // update LYC == LY flag
+  stat_val |= Byte(state.memory.f(Addr::LYC) == state.screen.current_line) << 2; // update LYC == LY flag
 }
 
 
@@ -163,7 +161,7 @@ inline void getTileLine (
 }
 
 
-[[gnu::noinline]] inline void renderLineOBJ (Byte line_n, LinePixels &line, const LinePixels &bgw_line_idcs, State &state)
+[[gnu::noinline]] inline void renderLineOBJ (LinePixels &line, const LinePixels &bgw_line_idcs, State &state)
 {
   if (not objEnabled(state)) {
     return;
@@ -177,7 +175,10 @@ inline void getTileLine (
   for (Short obj_addr = 0xFE00; obj_addr < 0xFEA0; obj_addr += 4) {
     Byte obj_y = state.memory.f(obj_addr);
     // line_n + 16 because obj_y has an offset of 16 and subtracting could cause underflow
-    if (obj_y <= (line_n + 16) and (obj_y + obj_height) > (line_n + 16)) {
+    if (
+      obj_y <= (state.screen.current_line + 16) and
+      (obj_y + obj_height) > (state.screen.current_line + 16)
+    ) {
       objs_in_line[n_objs++] = obj_addr;
       if (n_objs >= 10) {
         break;
@@ -200,7 +201,7 @@ inline void getTileLine (
     bool y_flip = ((obj_attrs & 0x40) != 0);
     bool x_flip = ((obj_attrs & 0x20) != 0);
     bool use_obp0 = ((obj_attrs & 0x10) == 0);
-    Byte tile_line = line_n + 16 - obj_y;
+    Byte tile_line = state.screen.current_line + 16 - obj_y;
     if (y_flip) {
       tile_line = obj_height - tile_line - 1;
     }
@@ -222,7 +223,7 @@ inline void getTileLine (
 }
 
 
-[[gnu::noinline]] inline void renderLineBGW (Byte line_n, LinePixels &bg_line, LinePixels &bgw_line_idcs, State &state)
+[[gnu::noinline]] inline void renderLineBGW (LinePixels &bg_line, LinePixels &bgw_line_idcs, State &state)
 {
   // If master BG and Window enable is off return white line
   if (not bgWinEnabled(state)) {
@@ -233,7 +234,7 @@ inline void getTileLine (
 
   Byte scy = state.memory.f(Addr::SCY); // Viewport Y position
   Byte scx = state.memory.f(Addr::SCX); // Viewport X position
-  Byte bg_line_n = (scy + line_n)%256; // Y coord of the line relative to BG
+  Byte bg_line_n = (scy + state.screen.current_line)%256; // Y coord of the line relative to BG
   Byte tile_y = bg_line_n/8; // Y pos in the 32x32 bg's tile map
   Byte tile_line = bg_line_n%8; // Number of the line in the tile (0 to 7, both inclusive)
   Short addr_tile = (useBGTileMapHigh(state) ? 0x9C00 : 0x9800) + tile_y*32; // Addr of the tile on the left
@@ -242,7 +243,7 @@ inline void getTileLine (
 
   // Render background pixels until window found
   int scx_right = scx + SCREEN_PX_W;
-  if (isWinEnabled(state) and wy <= line_n) {
+  if (isWinEnabled(state) and wy <= state.screen.current_line) {
     scx_right = scx + std::max(0, std::min(wx, int(SCREEN_PX_W + 7)) - 7);
   }
   int px_idx = scx;
@@ -288,15 +289,15 @@ inline void getTileLine (
 }
 
 
-inline void renderLine (Byte line_n, State &state)
+inline void renderLine (State &state)
 {
   state.screen.bgw_palette = colorsFromPalette<false>(state.memory.f(Addr::BGP));
   state.screen.obp0_palette = colorsFromPalette<true>(state.memory.f(Addr::OBP0));
   state.screen.obp1_palette = colorsFromPalette<true>(state.memory.f(Addr::OBP1));
-  LinePixels &line_data = (*state.screen.pixels)[line_n];
+  LinePixels &line_data = (*state.screen.pixels)[state.screen.current_line];
   LinePixels bgw_line_idcs;
-  renderLineBGW(line_n, line_data, bgw_line_idcs, state);
-  renderLineOBJ(line_n, line_data, bgw_line_idcs, state);
+  renderLineBGW(line_data, bgw_line_idcs, state);
+  renderLineOBJ(line_data, bgw_line_idcs, state);
 }
 
 
@@ -314,20 +315,34 @@ inline void updateMemoryAccess (State &state, ScreenMode mode) {
 }
 
 
+inline void updateDotCounter(State &state) {
+  state.screen.current_line_dot += state.timing.cycles - state.screen.last_updated_cycles;
+  state.screen.last_updated_cycles = state.timing.cycles;
+  if (state.screen.current_line_dot >= DOTS_PER_LINE) {
+    state.screen.current_line_dot -= DOTS_PER_LINE;
+    state.screen.current_line++;
+    if (state.screen.current_line >= DOTS_PER_FRAME/DOTS_PER_LINE) {
+      state.screen.current_line = 0;
+    }
+  }
+}
+
+
 template<class InterfaceT>
 inline void updateGraphics (State &state, InterfaceT &interface)
 {
+  updateDotCounter(state);
+
   if (not LCDEnabled(state)) {
     state.memory.f(Addr::STAT) &= 0xFC; // Clear bits 0 & 1, set mode 0
     state.memory.f(Addr::LY) = 0;
     return;
   }
 
-  Byte line_n;
-  ScreenMode mode = getMode(state, line_n);
+  ScreenMode mode = getMode(state);
   updateMemoryAccess(state, mode);
-  setInterrupts(line_n, mode, state);
-  updateLCDStatusRegs(line_n, mode, state);
+  setInterrupts(mode, state);
+  updateLCDStatusRegs(mode, state);
 
   if (mode == ScreenMode::VBLANK) {
     state.screen.window_y = 0;
@@ -335,13 +350,19 @@ inline void updateGraphics (State &state, InterfaceT &interface)
 
   // Check if a new line needs to be rendered
   ulong current_frame = state.timing.cycles/DOTS_PER_FRAME;
-  if (mode == ScreenMode::HBLANK and current_frame != state.screen.frame_last_updated[line_n]) {
-    renderLine(line_n, state);
+  if (
+    mode == ScreenMode::HBLANK and
+    current_frame != state.screen.frame_last_updated[state.screen.current_line]
+  ) {
+    renderLine(state);
     // If rendered last line of frame and frame has been rendered from line 0, call screen update
-    if (line_n == SCREEN_PX_H-1 and current_frame == state.screen.frame_last_updated[0]) {
+    if (
+      state.screen.current_line == SCREEN_PX_H-1 and
+      current_frame == state.screen.frame_last_updated[0]
+    ) {
       state.screen.pixels = interface.updateScreen();
     }
-    state.screen.frame_last_updated[line_n] = current_frame;
+    state.screen.frame_last_updated[state.screen.current_line] = current_frame;
   }
 }
 

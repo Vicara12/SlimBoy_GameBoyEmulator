@@ -47,6 +47,9 @@ using ScreenPixels = std::array<LinePixels, SCREEN_PX_H>;
 
 struct GraphicsState {
   ScreenMode last_mode = ScreenMode::HBLANK;
+  ulong last_updated_cycles = 0;
+  ulong current_line = 0;
+  ulong current_line_dot = 0;
   bool ly_lyc_flag_already_set = false;
   Byte window_y = 0;
   PaletteColors bgw_palette;
