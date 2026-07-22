@@ -23,14 +23,15 @@ struct EmulatorConfig {
 
 
 // Compiletime configurations
-struct BuildConfig {
-  bool debug = false;
-  bool fast_graphics = false;
-};
+namespace BuildCfb {
+    constexpr int None = 0;
+    constexpr int Debug = 1 << 0;
+    constexpr int FastGraphics = 1 << 1;
+}
 
 
 // Run the emulator (boot + run)
-template<class InterfaceT, BuildConfig bcfg = {}>
+template<class InterfaceT, int bcfg = BuildCfb::None>
 void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorConfig cfg) {
   try {
     // State is created in the heap because large stack variables can crash small systems
@@ -45,7 +46,7 @@ void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorCon
       setPostBootState(*state);
       state->memory.replaceBootRom();
     }
-    execute<InterfaceT, bcfg.debug, bcfg.fast_graphics>(*state, interface);
+    execute<InterfaceT, bcfg & BuildCfb::Debug, bcfg & BuildCfb::FastGraphics>(*state, interface);
     if (cart_info.hardware.battery) {
       interface.saveRAM(state->memory.copyRAM());
     }
