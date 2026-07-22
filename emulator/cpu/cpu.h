@@ -17,7 +17,7 @@
 
 namespace gb {
 
-template<class InterfaceT, bool debug>
+template<class InterfaceT, bool debug, bool fast_graphics>
 void execute (State &state, InterfaceT &interface) {
   ulong n_instrs = 0;
   Byte opcode = 0x00, data0 = 0x00, data1 = 0x00;
@@ -46,7 +46,7 @@ void execute (State &state, InterfaceT &interface) {
       }
     } while (state.stopped and not state.end_emulation);
     updateTimeRegisters(state);
-    updateGraphics(state, interface);
+    updateGraphics<InterfaceT, fast_graphics>(state, interface);
     updateAudio(state, interface);
     checkAndCallInterrupt(state);
     synchExecution(state, interface);

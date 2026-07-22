@@ -15,14 +15,22 @@
 
 namespace gb {
 
+// Runtime configurations
 struct EmulatorConfig {
   bool synch_execution = true;
   bool skip_boot_room = false;
 };
 
 
+// Compiletime configurations
+struct BuildConfig {
+  bool debug = false;
+  bool fast_graphics = false;
+};
+
+
 // Run the emulator (boot + run)
-template<class InterfaceT, bool debug>
+template<class InterfaceT, BuildConfig bcfg = {}>
 void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorConfig cfg) {
   try {
     // State is created in the heap because large stack variables can crash small systems
@@ -37,7 +45,7 @@ void emulator (InterfaceT &interface, const GameRom &cartridge_data, EmulatorCon
       setPostBootState(*state);
       state->memory.replaceBootRom();
     }
-    execute<InterfaceT, debug>(*state, interface);
+    execute<InterfaceT, bcfg.debug, bcfg.fast_graphics>(*state, interface);
     if (cart_info.hardware.battery) {
       interface.saveRAM(state->memory.copyRAM());
     }

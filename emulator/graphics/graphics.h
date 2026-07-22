@@ -323,12 +323,24 @@ inline void updateDotCounter(State &state) {
     state.screen.current_line++;
     if (state.screen.current_line >= DOTS_PER_FRAME/DOTS_PER_LINE) {
       state.screen.current_line = 0;
+      state.screen.current_frame++;
     }
   }
 }
 
 
-template<class InterfaceT>
+template<bool fast_graphics>
+inline bool checkFastGraphics(const State &state) {
+  // In fast graphics mode only half of the frames are rendered
+  if constexpr (fast_graphics) {
+    return (state.screen.current_frame & 1);
+  } else {
+    return true;
+  }
+}
+
+
+template<class InterfaceT, bool fast_graphics>
 inline void updateGraphics (State &state, InterfaceT &interface)
 {
   updateDotCounter(state);
@@ -349,20 +361,20 @@ inline void updateGraphics (State &state, InterfaceT &interface)
   }
 
   // Check if a new line needs to be rendered
-  ulong current_frame = state.timing.cycles/DOTS_PER_FRAME;
   if (
+    checkFastGraphics<fast_graphics>(state) and
     mode == ScreenMode::HBLANK and
-    current_frame != state.screen.frame_last_updated[state.screen.current_line]
+    state.screen.current_frame != state.screen.frame_last_updated[state.screen.current_line]
   ) {
     renderLine(state);
     // If rendered last line of frame and frame has been rendered from line 0, call screen update
     if (
       state.screen.current_line == SCREEN_PX_H-1 and
-      current_frame == state.screen.frame_last_updated[0]
+      state.screen.current_frame == state.screen.frame_last_updated[0]
     ) {
       state.screen.pixels = interface.updateScreen();
     }
-    state.screen.frame_last_updated[state.screen.current_line] = current_frame;
+    state.screen.frame_last_updated[state.screen.current_line] = state.screen.current_frame;
   }
 }
 

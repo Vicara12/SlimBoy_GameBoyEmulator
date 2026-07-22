@@ -86,6 +86,10 @@ public:
     return screen_frames[0];
   }
 
+  inline bool newScreenAvailable() const {
+    return new_frame;
+  }
+
   // This function receives a Byte in which a 1 corresponds to some button being pressed. The bit to
   // button mapping is defined in the Buttons enum
   void setButtons (Byte buttons_pressed) {buttons = buttons_pressed;}
